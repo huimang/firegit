@@ -17,7 +17,7 @@ class DbImpl
     /**
      * @var \PDO
      */
-    private $conn;
+    private $pdo;
 
     /**
      * @var string 库名
@@ -26,39 +26,49 @@ class DbImpl
     /**
      * @var string 表名
      */
-    private $_table;
+    private $tb;
 
     /**
      * @var array 获取的数据列
      */
-    private $_field = [];
+    private $fields = [];
     /**
      * @var array 查询条件
      */
-    private $_where = [];
+    private $causes = [];
 
     /**
      * @var array 绑定的参数
      */
-    private $_params = [];
+    private $params = [];
+
+    /**
+     * @var array 保存的语句
+     */
+    private $saves = [];
+
+    /**
+     * @var array 保存的数据
+     */
+    private $datas = [];
 
     /**
      * @var array groupBy
      */
-    private $_group = [];
+    private $groups = [];
     /**
      * @var array sortBy
      */
-    private $_sort = [];
+    private $sorts = [];
     /**
      * @var string limit
      */
-    private $_limit;
+    private $limits;
 
     /**
      * @var int 最后插入的ID
      */
-    private $_lastId;
+    private $lastInsertId;
 
     /**
      * 初始化db
@@ -76,7 +86,7 @@ class DbImpl
      */
     private function checkTable()
     {
-        if (!$this->_table) {
+        if (!$this->tb) {
             throw new Exception('db.tableIsEmpty');
         }
     }
@@ -89,11 +99,11 @@ class DbImpl
      */
     private function getConn($write = true)
     {
-        if ($this->conn) {
-            return $this->conn;
+        if ($this->pdo) {
+            return $this->pdo;
         }
 
-        $driver = $this->conn['driver'] ?? 'mysql';
+        $driver = $this->pdo['driver'] ?? 'mysql';
         $dsn = '';
         switch ($driver) {
             case 'mysql':
@@ -101,15 +111,15 @@ class DbImpl
                     'mysql:dbname=%s;host=%s;port=%s;charset=%s',
                     $this->db,
                     $this->conf['host'] ?? '127.0.0.1',
-                    $this->conn['port'] ?? 3306,
-                    $this->conn['charset'] ?? 'utf8'
+                    $this->pdo['port'] ?? 3306,
+                    $this->pdo['charset'] ?? 'utf8'
                 );
                 break;
             default:
                 throw new Exception('db.driverNotSupported driver:' . $driver);
         }
 
-        return $this->conn = new \PDO($dsn, $this->conf['user'], $this->conf['pass']);
+        return $this->pdo = new \PDO($dsn, $this->conf['user'], $this->conf['pass']);
     }
 
     /**
@@ -117,14 +127,15 @@ class DbImpl
      */
     private function reset()
     {
-        $this->_table = null;
-        $this->_field = [];
-        $this->_where = [];
-        $this->_params = [];
-        $this->_group = [];
-        $this->_sort = [];
-        $this->_limit = null;
-        $this->_lastId = null;
+        $this->tb = null;
+        $this->fields = [];
+        $this->causes = [];
+        $this->params = [];
+        $this->groups = [];
+        $this->sorts = [];
+        $this->limits = null;
+        $this->saves = [];
+        $this->datas = [];
     }
 
     /**
@@ -134,7 +145,7 @@ class DbImpl
      */
     public function table(string $table)
     {
-        $this->_table = $table;
+        $this->tb = $table;
         return $this;
     }
 
@@ -145,10 +156,35 @@ class DbImpl
      */
     public function field(string ... $fields)
     {
-        $this->_field = '`' . $fields . '`';
+        foreach ($fields as $field) {
+            $this->fields[] = '`' . $field . '`';
+        }
         return $this;
     }
 
+    /**
+     * 设置查询条件，$where用=，而这里建议用非等于以外的表达式
+     * @param $key
+     * @param $value
+     * @param $cause 如">"、"<="等
+     * @return $this
+     * @throws Exception
+     */
+    public function whereCause($key, $value, $cause)
+    {
+        if ($cause == 'between') {
+            if (!is_array($value) || count($value) != 2) {
+                throw new Exception('db.betwwenMustSupplyArrayWith2Elements');
+            }
+            $this->causes[] = "(`{$key}` between ? AND ?)";
+            $this->params[] = $value[0];
+            $this->params[] = $value[1];
+            return $this;
+        }
+        $this->causes[] = "(`$key`{$cause}?)";
+        $this->params[] = $value;
+        return $this;
+    }
 
     /**
      * 设置查询条件
@@ -160,27 +196,35 @@ class DbImpl
     public function where($where, array $args = [])
     {
         if (is_string($where)) {
-            $this->_where[] = '(' . $where . ')';
+            $this->causes[] = '(' . $this->packWhere($where) . ')';
             foreach ($args as $arg) {
-                $this->_params[] = $arg;
+                $this->params[] = $arg;
             }
         } elseif (is_array($where)) {
             foreach ($where as $k => $v) {
                 if (is_int($k)) {
-                    $this->_where[] = $where;
-                } elseif (is_array($v)) {
-                    if (isset($v['exp'])) {
-                        $this->_where[] = "(`$k`={$v['exp']})";
-                    }
+                    $this->causes[] = '(' . $this->packWhere($v) . ')';
                 } else {
-                    $this->_where[] = "(`$k`=?)";
-                    $this->_params[] = $v;
+                    $this->causes[] = "(`$k`=?)";
+                    $this->params[] = $v;
                 }
             }
         } else {
             throw new Exception('db.illegalWhere');
         }
         return $this;
+    }
+
+    /**
+     * 封装where条件，主要是将字段名称变成`xxxx`的形式
+     * @param string $where
+     * @return string
+     */
+    private function packWhere($where)
+    {
+        $where = preg_replace('#\b([a-zA-Z][a-zA-Z0-9\_\-]+)(\s*)(=|>|<|&|\||\^|~|\sis|\sbetween\s|\sor\s|\sand\s)#im',
+            '`\1`\2\3', $where);
+        return $where;
     }
 
     /**
@@ -207,7 +251,7 @@ class DbImpl
     public function group(string ... $keys)
     {
         foreach ($keys as $key) {
-            $this->_group[] = "`{$keys}`";
+            $this->groups[] = "`{$key}`";
         }
         return $this;
     }
@@ -219,7 +263,30 @@ class DbImpl
      */
     public function sort(string $key, $desc = true)
     {
-        $this->_sort[] = "`$key` " . ($desc ? 'desc' : 'asc');
+        $this->sorts[] = "`$key` " . ($desc ? 'desc' : 'asc');
+        return $this;
+    }
+
+    /**
+     * 保存数据
+     * @param array $arr
+     * @param int $mode 0：单行数据
+     * @return $this
+     * @throws Exception
+     */
+    public function save(array $arr, int $mode = 0)
+    {
+        foreach ($arr as $key => $value) {
+            $this->saves[] = "`{$key}`";
+            if (is_array($value)) {
+                if (!isset($value['exp'])) {
+                    throw new Exception('db.illegalValue');
+                }
+                $this->datas[] = $value['exp'];
+            } else {
+                $this->datas[] = $value;
+            }
+        }
         return $this;
     }
 
@@ -231,24 +298,20 @@ class DbImpl
      */
     public function limit($size, $from = 0)
     {
-        $this->_limit = "{$from}, {$size}";
+        $this->limits = "{$from}, {$size}";
         return $this;
     }
 
-    public function listDbs()
-    {
-
-    }
 
     /**
      * 执行sql
      * @param string $sql
      * @param array $args
-     * @return int 影响行数
+     * @return int|array 如果是写操作，返回影响行数；读操作返回数组
      */
     public function execute(string $sql, array $args = [])
     {
-        var_dump(func_get_args());
+//        var_dump($sql, $args);
         // 获取sql的类型
         list($action) = explode(' ', $sql, 2);
         $action = strtolower($action);
@@ -277,41 +340,57 @@ class DbImpl
         $row = $sth->rowCount();
         if ($write) {
             if ($action == 'insert') {
-                $this->_lastId = $pdo->lastInsertId();
+                $this->lastInsertId = $pdo->lastInsertId();
             }
             $this->reset();
             return $row;
         }
 
+        $ret = [];
         while (($row = $sth->fetch(\PDO::FETCH_ASSOC)) !== false) {
-            yield $row;
+            $ret[] = $row;
         }
         $this->reset();
-        return $row;
+        return $ret;
     }
 
 
     /**
      * 获取fields
+     * @param string $tb 表名，为null则使用->table()方法设置的表名
+     * @return array
      */
-    public function getFields()
+    public function getFields($tb = null)
     {
-        $this->checkTable();
-        $fields = [];
-        foreach ($this->execute("SHOW FULL FIELDS FROM `{$this->_table}`") as $row) {
-            $fields[$row['Field']] = $row;
+        if ($tb === null) {
+            $this->checkTable();
+            $tb = $this->tb;
         }
-        return $fields;
+        $fields = $this->execute("SHOW FULL FIELDS FROM `{$tb}`");
+        return array_column($fields, null, 'Field');
+    }
+
+    /**
+     * 获取该库的表
+     * @return array
+     */
+    public function getTables()
+    {
+        $key = "Tables_in_{$this->db}";
+        $ret = $this->execute("SHOW TABLES");
+        return array_column($ret, $key);
     }
 
     /**
      * 获取索引
+     * @return array
      */
     public function getIndexs()
     {
         $this->checkTable();
+        $rows = $this->execute("SHOW INDEX FROM `{$this->tb}`");
         $indexs = [];
-        foreach ($this->execute("SHOW INDEX FROM `{$this->_table}`") as $row) {
+        foreach ($rows as $row) {
             $name = $row['Key_name'];
             if (isset($indexs[$name])) {
                 $indexs[$name]['Fields'][] = $row['Column_name'];
@@ -325,31 +404,146 @@ class DbImpl
     }
 
     /**
+     * 获取最后插入的id
+     * @return int
+     */
+    public function getLastInsertId()
+    {
+        return $this->lastInsertId;
+    }
+
+    /**
      * 获取数据
+     * @return array
+     * @throws Exception
      */
     public function get()
     {
         $this->checkTable();
-        if (empty($this->_where)) {
-            throw new Exception('db.whereIsEmpty');
+        if (empty($this->causes)) {
+            throw new Exception('db.whereIsRequired');
         }
-        $sql = "SELECT " . (empty($this->_field) ? '*' : implode(',', $this->_field)) . " FROM `{$this->_table}`";
-        $sql .= " WHERE " . implode(' AND ', $this->_where);
-        if (!empty($this->_group)) {
-            $sql .= " GROUP BY " . implode(',', $this->_group);
+        $sql = "SELECT " . (empty($this->fields) ? '*' : implode(',', $this->fields)) . " FROM `{$this->tb}`";
+        $sql .= " WHERE " . implode(' AND ', $this->causes);
+        if (!empty($this->groups)) {
+            $sql .= " GROUP BY " . implode(',', $this->groups);
         }
-        if (!empty($this->_sort)) {
-            $sql .= " SORT " . implode(',', $this->_sort);
+        if (!empty($this->sorts)) {
+            $sql .= " SORT " . implode(',', $this->sorts);
         }
-        if (!empty($this->_limit)) {
-            $sql .= " LIMIT {$this->_limit}";
+        if (!empty($this->limits)) {
+            $sql .= " LIMIT {$this->limits}";
         }
-        $ret = [];
-        foreach ($this->execute($sql, $this->_params) as $row) {
-            $ret[] = $row;
-        }
-        return $ret;
+        return $this->execute($sql, $this->params);
     }
+
+    /**
+     * 获取一条记录，没有获取到就返回null
+     * @return mixed|null
+     */
+    public function getOne()
+    {
+        if (!$this->limits) {
+            $this->limit(1);
+        }
+        $ret = $this->get();
+        return $ret ? array_shift($ret) : null;
+    }
+
+    /**
+     * 获取总数
+     * @return int
+     * @throws Exception
+     */
+    public function getCount()
+    {
+        $this->checkTable();
+        if (empty($this->causes)) {
+            throw new Exception('db.whereIsRequired');
+        }
+        $sql = "SELECT COUNT(0) AS COUNT FROM `{$this->tb}`";
+        $sql .= " WHERE " . implode(' AND ', $this->causes);
+        if (!empty($this->groups)) {
+            $sql .= " GROUP BY " . implode(',', $this->groups);
+        }
+        $ret = $this->execute($sql, $this->params);
+        return isset($ret[0]['COUNT']) ? intval($ret[0]['COUNT']) : 0;
+    }
+
+    /**
+     * 获取是否存在相应的数据
+     * @return bool
+     * @throws Exception
+     */
+    public function getExist()
+    {
+        $this->checkTable();
+        if (empty($this->causes)) {
+            throw new Exception('db.whereIsRequired');
+        }
+        $sql = "SELECT 1 FROM `{$this->tb}`";
+        $sql .= " WHERE " . implode(' AND ', $this->causes);
+        if (!empty($this->groups)) {
+            $sql .= " GROUP BY " . implode(',', $this->groups);
+        }
+        $ret = $this->execute($sql, $this->params);
+        return !empty($ret);
+    }
+
+    /**
+     * 插入
+     * @return int
+     */
+    public function insert()
+    {
+        $this->checkTable();
+
+        $sql = "INSERT INTO `{$this->tb}`(" . implode(',', $this->saves) . ")";
+        $sql .= " VALUES(" . implode(',', array_fill(0, count($this->saves), '?')) . ")";
+        return $this->execute($sql, $this->datas);
+    }
+
+    /**
+     * 更新
+     * @return int
+     * @throws Exception
+     */
+    public function update()
+    {
+        $this->checkTable();
+
+        if (empty($this->causes)) {
+            throw new Exception('db.whereIsRequired');
+        }
+
+        $sql = "UPDATE `{$this->tb}` SET " . implode(',', array_map(
+                function ($item) {
+                    return $item . '=?';
+                },
+                $this->saves
+            ));
+        $sql .= " WHERE " . implode(' AND ', $this->causes);
+        return $this->execute($sql, array_merge($this->datas, $this->params));
+    }
+
+    /**
+     * 删除
+     * @return int
+     * @throws Exception
+     */
+    public function delete()
+    {
+        $this->checkTable();
+
+        if (empty($this->causes)) {
+            throw new Exception('db.whereIsRequired');
+        }
+
+        $sql = "DELETE FROM `{$this->tb}`";
+        $sql .= " WHERE " . implode(' AND ', $this->causes);
+        return $this->execute($sql, $this->params);
+    }
+
 
     public function __destruct()
     {
