@@ -3,15 +3,13 @@
  *
  * @author: ronnie
  * @since: 2017/1/13 00:55
- * @copyright: 2017@hunbasha.com
+ * @copyright: 2017@firegit.com
  * @filesource: DbImplTest.php
  */
 
-namespace firegit\lib\db\tests;
+namespace huimang\db\tests;
 
-
-use firegit\lib\db\DbImpl;
-
+use huimang\db\DbImpl;
 
 class DbImplTest extends \PHPUnit_Framework_TestCase
 {
@@ -24,16 +22,7 @@ class DbImplTest extends \PHPUnit_Framework_TestCase
         'charset' => 'utf8',
     ];
 
-//
-//    public function testDbImpl()
-//    {
-//        $dbImpl = new DbImpl('firegit', $this->conf);
-//        $fields = $dbImpl->table('repo')->getFields();
-//        var_dump($fields);
-//
-//        $indexs = $dbImpl->table('repo')->getIndexs();
-//        var_dump($indexs);
-//    }
+
 
     public function testAll()
     {
@@ -42,7 +31,18 @@ class DbImplTest extends \PHPUnit_Framework_TestCase
 //        $this->tryExists($dbImpl);
 //        $this->tryGet($dbImpl);
 //        $this->tryInsert($dbImpl);
-        $this->tryUpdate($dbImpl);
+//        $this->tryUpdate($dbImpl);
+        $this->tryDelete($dbImpl);
+    }
+
+    public function tryGetFields()
+    {
+        $dbImpl = new DbImpl('firegit', $this->conf);
+        $fields = $dbImpl->table('repo')->getFields();
+        var_dump($fields);
+
+        $indexs = $dbImpl->table('repo')->getIndexs();
+        var_dump($indexs);
     }
 
     public function tryGet(DbImpl $db)
@@ -93,5 +93,19 @@ class DbImplTest extends \PHPUnit_Framework_TestCase
             ->getOne();
         $this->assertArrayNotHasKey('repo_id', $row);
         $this->assertEquals($newName, $row['name']);
+    }
+
+    public function tryDelete(DbImpl $db)
+    {
+        $id = 10003;
+        $num = $db->table('repo')
+            ->where(['repo_id' => $id])
+            ->delete();
+        var_dump($num);
+
+        $row = $db->table('repo')
+            ->where(['repo_id' => $id])
+            ->getOne();
+        $this->assertEquals(null, $row);
     }
 }

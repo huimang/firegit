@@ -11,8 +11,11 @@
   ],
   "autoload": {
     "psr-4": {
-      "firegit\\": "./src"
+      "huimang\\": "./app/library/huimang/"
     }
+  },
+  "require": {
+    "ext-yaf": "^3.0.4"
   },
   "require-dev": {
     "phpunit/phpunit": "^5.7"

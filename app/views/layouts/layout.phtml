@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="./dist/uikit/css/uikit.min.css"/>
+    <script src="./dist/jquery/jquery.min.js"></script>
+    <script src="./dist/uikit/js/uikit.min.js"></script>
+    <script src="./dist/vue/vue.js"></script>
+    <title>Firegit</title>
+</head>
+<body>
+<nav class="uk-navbar">
+
+    <a class="uk-navbar-brand" href="/s">Firegit</a>
+
+    <ul class="uk-navbar-nav">
+        <li class="uk-active"><a href="/">首页</a></li>
+        <li><a href="/repo/">GIT库</a></li>
+
+    </ul>
+
+
+    <div class="uk-navbar-content">Some <a href="#">链接</a>.</div>
+
+    <div class="uk-navbar-content uk-hidden-small">
+        <form class="uk-form uk-margin-remove uk-display-inline-block">
+            <input type="text" placeholder="搜索GIT库">
+            <button class="uk-button uk-button-primary">搜索</button>
+        </form>
+    </div>
+
+    <div class="uk-navbar-nav uk-navbar-flip  uk-hidden-small">
+        <ul class="uk-navbar-nav">
+            <li class="uk-parent" data-uk-dropdown="">
+                <a href="/my/">邓小龙</a>
+
+                <div class="uk-dropdown uk-dropdown-navbar">
+                    <ul class="uk-nav uk-nav-navbar">
+                        <li><a href="/my/">帐号</a></li>
+                        <li><a href="/my/merge/">我的</a></li>
+                        <li class="uk-nav-divider"></li>
+                        <li><a href="/account/logout/">退出</a></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+</nav>
+<div class="uk-container">
+    <?= $content ?>
+</div>
+</body>
+</html>

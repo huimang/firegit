@@ -1,0 +1,38 @@
+{
+  "name": "firegit",
+  "version": "1.0.0",
+  "description": "Git Repositories Manage System Based on PHP.",
+  "main": "index.js",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "jquery": "^2.2.4",
+    "uikit": "^2.27.2",
+    "vue": "^2.1.8"
+  },
+  "devDependencies": {
+    "rimraf": "^2.5.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prebuild.js": "rm ./public/dist/ -rf && mkdir ./public/dist/",
+    "build.js.jquery": "mkdir ./public/dist/jquery/ && cp node_modules/jquery/dist/jquery.min.js ./public/dist/jquery/",
+    "build.js.uikit": "mkdir ./public/dist/uikit/ && find ./node_modules/uikit/dist/ -maxdepth 1 |grep -E '/(css|js|fonts)'|xargs -i cp {} ./public/dist/uikit/ -rf",
+    "build.js.vue": "mkdir ./public/dist/vue/ && cp node_modules/vue/dist/vue.js ./public/dist/vue/",
+    "build.js": "npm run build.js.vue && npm run build.js.uikit && npm run build.js.jquery",
+    "build": "npm run build.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/huimang/firegit.git"
+  },
+  "keywords": [
+    "git",
+    "php"
+  ],
+  "author": "ronnie <ronnie@huimang.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/huimang/firegit/issues"
+  },
+  "homepage": "https://gitlab.com/huimang/firegit#README"
+}

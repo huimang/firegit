@@ -3,29 +3,38 @@
  *
  * @author: ronnie
  * @since: 2017/1/12 23:06
- * @copyright: 2017@hunbasha.com
+ * @copyright: 2017@firegits.com
  * @filesource: Db.php
  */
 
-namespace firegit\lib\db;
+namespace huimang\db;
 
-use firegit\lib\Exception;
+use huimang\Exception;
 
 class Db
 {
     private static $confs = [];
 
     /**
+     * 初始化
+     * @param array $confs
+     */
+    public static function init(array $confs)
+    {
+        self::$confs = $confs;
+    }
+
+    /**
      * 获取db对象
      * @param null $db
      * @throws Exception
-     * @return Db
+     * @return DbImpl
      */
     public static function get($db = null)
     {
         if ($db === null) {
-            if (isset(self::$confs['default_db'])) {
-                $db = self::$confs['default_db'];
+            if (isset(self::$confs['default'])) {
+                $db = self::$confs['default'];
             } else {
                 throw new Exception('db.dbNameIsRequired');
             }
@@ -38,6 +47,6 @@ class Db
             throw new Exception('db.poolNotFound poolName:'.$poolName);
         }
 
-        return new DbImpl(self::$confs['pool'][$poolName]);
+        return new DbImpl($db, self::$confs['pool'][$poolName]);
     }
 }

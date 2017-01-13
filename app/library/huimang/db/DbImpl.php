@@ -3,13 +3,13 @@
  *
  * @author: ronnie
  * @since: 2017/1/12 23:26
- * @copyright: 2017@hunbasha.com
+ * @copyright: 2017@firegit.com
  * @filesource: DbImpl.php
  */
 
-namespace firegit\lib\db;
+namespace huimang\db;
 
-use firegit\lib\Exception;
+use huimang\Exception;
 
 class DbImpl
 {
@@ -123,6 +123,30 @@ class DbImpl
     }
 
     /**
+     * 设置查询条件，$where用=，而这里建议用非等于以外的表达式
+     * @param $key
+     * @param $cause 如">"、"<="等
+     * @param $value
+     * @return $this
+     * @throws Exception
+     */
+    public function whereCause($key, $cause, $value)
+    {
+        if ($cause == 'between') {
+            if (!is_array($value) || count($value) != 2) {
+                throw new Exception('db.betwwenMustSupplyArrayWith2Elements');
+            }
+            $this->causes[] = "(`{$key}` between ? AND ?)";
+            $this->params[] = $value[0];
+            $this->params[] = $value[1];
+            return $this;
+        }
+        $this->causes[] = "(`$key`{$cause}?)";
+        $this->params[] = $value;
+        return $this;
+    }
+
+    /**
      * 重置查询项
      */
     private function reset()
@@ -159,30 +183,6 @@ class DbImpl
         foreach ($fields as $field) {
             $this->fields[] = '`' . $field . '`';
         }
-        return $this;
-    }
-
-    /**
-     * 设置查询条件，$where用=，而这里建议用非等于以外的表达式
-     * @param $key
-     * @param $value
-     * @param $cause 如">"、"<="等
-     * @return $this
-     * @throws Exception
-     */
-    public function whereCause($key, $value, $cause)
-    {
-        if ($cause == 'between') {
-            if (!is_array($value) || count($value) != 2) {
-                throw new Exception('db.betwwenMustSupplyArrayWith2Elements');
-            }
-            $this->causes[] = "(`{$key}` between ? AND ?)";
-            $this->params[] = $value[0];
-            $this->params[] = $value[1];
-            return $this;
-        }
-        $this->causes[] = "(`$key`{$cause}?)";
-        $this->params[] = $value;
         return $this;
     }
 
@@ -335,7 +335,9 @@ class DbImpl
 
         $pdo = $this->getConn($write);
         $sth = $pdo->prepare($sql);
-        $sth->execute($args);
+        if ($sth->execute($args) === false) {
+            throw Exception::newEx('db.error', $sth->errorInfo()[2]);
+        }
 
         $row = $sth->rowCount();
         if ($write) {
