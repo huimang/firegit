@@ -4,30 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" type="text/css" href="/dist/iview/css/iview.css"/>
+    <link rel="stylesheet" type="text/css" href="/dist/materialize/css/materialize.min.css"/>
     <script src="/dist/jquery/jquery.min.js"></script>
-    <script src="/dist/vue/vue.js"></script>
-    <script src="/dist/iview/js/iview.min.js"></script>
+    <script src="/dist/vue/vue.min.js"></script>
+    <script src="/dist/materialize/js/materialize.min.js"></script>
     <title>Firegit</title>
+    <style>
+        main .container{width:100%;padding:.5rem;}
+    </style>
 </head>
 <body>
-<div id="app">
-    <i-button @click="show">Click me!</i-button>
-    <Modal :visible.sync="visible" title="Welcome">欢迎使用 iView</Modal>
-</div>
-<script>
-    new Vue({
-        el: '#app',
-        data: {
-            visible: false
-        },
-        methods: {
-            show: function () {
-                this.visible = true;
-            }
-        }
-    })
-</script>
+<header>
+<nav>
+    <div class="nav-wrapper">
+        <a href="#" class="brand-logo">Firegit</a>
+        <ul class="hide-on-med-and-down" style="margin-left:7rem;">
+            <li class="active"><a href="/">首页</a></li>
+            <li><a href="/repo/">GIT库</a></li>
+            <li><a href="/merge/">合并请求</a></li>
+        </ul>
+    </div>
+</nav>
+</header>
+<main>
+    <div class="container">
+        <?=$content?>
+    </div>
+</main>
+<footer>
+
+</footer>
 </body>
 </body>
 </html>

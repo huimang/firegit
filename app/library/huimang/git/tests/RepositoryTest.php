@@ -17,7 +17,9 @@ class RepositoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testCreateRepo()
     {
-        $path = REPO_PATH . '/bundle/foo.git';
-        Repository::addRepo($path);
+        $path = REPO_PATH . '/huimang/firegit.git';
+        //Repository::addRepo($path);
+        $files = Repository::lsTree($path, 'master', './');
+        var_dump($files);
     }
 }

@@ -16,8 +16,39 @@ class RepoController extends \Yaf\Controller_Abstract
         if (!$repo) {
             throw new \huimang\Exception('notfound');
         }
-        $this->getView()->assign('repo', $repo);
+
+        $branch = 'master';
+        $path = sprintf('%s/%s/%s.git', REPO_PATH, $repo['group'], $repo['name']);
+        $files = \huimang\git\Repository::lsTree($path, $branch);
+        $this->_view->repo = $repo;
+        $this->_view->files = $files;
+        $this->_view->branch = $branch;
     }
+
+    public function treeAction()
+    {
+        $repo = new RepoModel();
+        $repo = $repo->getRepo($_GET['repo_id']);
+        if (!$repo) {
+            throw new \huimang\Exception('notfound');
+        }
+
+        $branch = rtrim($this->_request->getParam('branch'), '/');
+        $dir = rtrim($this->_request->getParam('dir'), '/');
+
+        $path = sprintf('%s/%s/%s.git', REPO_PATH, $repo['group'], $repo['name']);
+        $files = \huimang\git\Repository::lsTree($path, $branch, $dir);
+        $this->_view->repo = $repo;
+        $this->_view->files = $files;
+        $this->_view->branch = $branch;
+    }
+
+    public function blobAction()
+    {
+        
+    }
+
+
 
     public function commitAction()
     {

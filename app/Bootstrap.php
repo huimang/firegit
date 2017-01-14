@@ -42,10 +42,9 @@ class Bootstrap extends Bootstrap_Abstract
 
     public function _initRouter()
     {
-        $router = \Yaf\Dispatcher::getInstance()->getRouter();
         $routes = \Yaf\Registry::get("config")->routes;
         if (!empty($routes)) {
-            $router->addConfig($routes);
+            \Yaf\Dispatcher::getInstance()->getRouter()->addConfig($routes);
         }
     }
 

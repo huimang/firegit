@@ -9,14 +9,13 @@
 
 <ul class="collection">
     <?php foreach($files['dir'] as $dir):?>
-    <li class="collection-item">
-        <a href="/<?=$repo['group']?>/<?=$repo['name']?>/<?=$branch?>/tree/<?=$dir['path']?>/"><?=$dir['name']?></a>
-    </li>
+        <li class="collection-item">
+            <a href="/<?=$repo['group']?>/<?=$repo['name']?>/<?=$branch?>/tree/<?=$dir['path']?>/"><?=$dir['name']?></a>
+        </li>
     <?php endforeach?>
     <?php foreach($files['file'] as $file):?>
-    <li class="collection-item">
-        <a href="/<?=$repo['group']?>/<?=$repo['name']?>/<?=$branch?>/blob/<?=$file['path']?>"><?=$file['name']?></a>
-    </li>
+        <li class="collection-item">
+            <a href="/<?=$repo['group']?>/<?=$repo['name']?>/<?=$branch?>/blob/<?=$file['path']?>"><?=$file['name']?></a>
+        </li>
     <?php endforeach?>
 </ul>
-
