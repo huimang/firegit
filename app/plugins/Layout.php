@@ -39,6 +39,9 @@ class LayoutPlugin extends \Yaf\Plugin_Abstract
 
     public function postDispatch(Request_Abstract $request, Response_Abstract $response)
     {
+        if ($request->getMethod() !== 'GET') {
+            return;
+        }
         $module = strtolower($request->getModuleName());
         $controller = strtolower($request->getControllerName());
         $action = strtolower($request->getActionName());

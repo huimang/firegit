@@ -32,7 +32,9 @@ class DbImplTest extends \PHPUnit_Framework_TestCase
 //        $this->tryGet($dbImpl);
 //        $this->tryInsert($dbImpl);
 //        $this->tryUpdate($dbImpl);
-        $this->tryDelete($dbImpl);
+//        $this->tryDelete($dbImpl);
+
+        $this->trySql($dbImpl);
     }
 
     public function tryGetFields()
@@ -75,7 +77,6 @@ class DbImplTest extends \PHPUnit_Framework_TestCase
                 'summary' => 'HapN框架'
             ])
             ->insert();
-        var_dump($db->getLastInsertId());
         $this->assertNotEmpty($db->getLastInsertId());
     }
 
@@ -107,5 +108,11 @@ class DbImplTest extends \PHPUnit_Framework_TestCase
             ->where(['repo_id' => $id])
             ->getOne();
         $this->assertEquals(null, $row);
+    }
+
+    public function trySql(DbImpl $db)
+    {
+        $db->field('count(0)', 'JSON_EXTRACT(setting, \'$->anonymous\') as anonymous', 'setting\'$->anonymous\' as an1', 'concat(count(group_id)) as num');
+        var_dump($db);
     }
 }

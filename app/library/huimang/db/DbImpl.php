@@ -66,6 +66,12 @@ class DbImpl
     private $limits;
 
     /**
+     * 当发生重复时如何保留数据
+     * @var array
+     */
+    private $duplicates = null;
+
+    /**
      * @var int 最后插入的ID
      */
     private $lastInsertId;
@@ -160,6 +166,7 @@ class DbImpl
         $this->limits = null;
         $this->saves = [];
         $this->datas = [];
+        $this->duplicates = null;
     }
 
     /**
@@ -181,7 +188,14 @@ class DbImpl
     public function field(string ... $fields)
     {
         foreach ($fields as $field) {
-            $this->fields[] = '`' . $field . '`';
+            if (strpos($field, '(') === false) {
+                $this->fields[] = preg_replace('#^([^\s\'\$\s\-]+)#', '`\1`', $field);
+            } elseif (strpos($field, ',') === false) {
+                $this->fields[] = preg_replace('#\(([a-zA-Z][^\)\(\'\$\s\-]*)\)#', '(`\1`)', $field);
+            } else {
+                // 对于包含,的，考虑其复杂性放弃对数据列的处理
+                $this->fields[] = $field;
+            }
         }
         return $this;
     }
@@ -222,9 +236,31 @@ class DbImpl
      */
     private function packWhere($where)
     {
-        $where = preg_replace('#\b([a-zA-Z][a-zA-Z0-9\_\-]+)(\s*)(=|>|<|&|\||\^|~|\sis|\sbetween\s|\sor\s|\sand\s)#im',
+        $where = preg_replace('#\b([a-zA-Z][a-zA-Z0-9\_\-]+)(\s*)(\=|\+|\-|\*|\/|>|<|&|\||\^|~|\sis|\sbetween\s|\sor\s|\sand\s)#im',
             '`\1`\2\3', $where);
         return $where;
+    }
+
+    /**
+     * 设置当发生主键或者索引重复时要更改的数据
+     * @param array $datas 如果设置的值不变，只需要将value指定为对应的字段名，否则，key设置为字段名，值为要修改的值，请注意，值不会再做sql注入检测，直接作为真实的值
+     * @example
+     * ->onDuplicate(['foo', 'bar' => (bar+1)])
+     * 最后的sql类似：
+     * ON DUPLICATE KEY UPDATE `foo`=values(`foo`),`bar`=(`bar`+1)
+     * @return $this
+     */
+    public function onDuplicate(array $datas)
+    {
+        foreach ($datas as $key => $value) {
+            if (is_int($key)) {
+                $_key = "`{$value}`";
+                $this->duplicates[$_key] = "$_key=VALUES({$_key})";
+            } else {
+                $this->duplicates["`{$key}`"] = $this->packWhere($value);
+            }
+        }
+        return $this;
     }
 
     /**
@@ -307,11 +343,12 @@ class DbImpl
      * 执行sql
      * @param string $sql
      * @param array $args
-     * @return int|array 如果是写操作，返回影响行数；读操作返回数组
+     * @return array|int 如果是写操作，返回影响行数；读操作返回数组
+     * @throws Exception
      */
     public function execute(string $sql, array $args = [])
     {
-//        var_dump($sql, $args);
+        error_log("sql:{$sql};args:".var_export($args, true));
         // 获取sql的类型
         list($action) = explode(' ', $sql, 2);
         $action = strtolower($action);
@@ -494,14 +531,38 @@ class DbImpl
 
     /**
      * 插入
+     * @param int $mode 默认为0 0：智能判断 1：正常插入 2：遇到冲突忽略 3：遇到冲突更新
      * @return int
      */
-    public function insert()
+    public function insert(int $mode = 0)
     {
+        // 如果设置过duplcates，则即使mode
+        if ($mode == 0) {
+            if ($this->duplicates !== null) {
+                $mode = 2;
+            } else {
+                $mode = 1;
+            }
+        }
         $this->checkTable();
 
-        $sql = "INSERT INTO `{$this->tb}`(" . implode(',', $this->saves) . ")";
+        $sql = "INSERT " . ($mode == 1 ? 'IGNORE ' : '') . "INTO `{$this->tb}`(" . implode(',', $this->saves) . ")";
         $sql .= " VALUES(" . implode(',', array_fill(0, count($this->saves), '?')) . ")";
+        if ($mode == 2) {
+            if ($this->duplicates === null) {
+                $updates = implode(
+                    ',',
+                    array_map(function ($key) {
+                        return "{$key}=VALUES({$key})";
+                    }, $this->saves));
+            } elseif (!empty($this->duplicates)) {
+                $updates = implode(',', $this->duplicates);
+            }
+            if ($updates) {
+                $sql .= ' ON DUPLICATE KEY UPDATE ' . $updates;
+            }
+        }
+
         return $this->execute($sql, $this->datas);
     }
 

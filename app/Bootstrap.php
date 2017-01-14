@@ -10,10 +10,22 @@ use Yaf\Bootstrap_Abstract;
  */
 class Bootstrap extends Bootstrap_Abstract
 {
+    /**
+     * 初始化数据库
+     */
     public function _initDb()
     {
-        $cfg = new  \Yaf\Config\Ini(CONF_PATH . 'db.ini', 'db');
-        \huimang\db\Db::init($cfg->db->toArray());
+        $cfg = new \Yaf\Config\Ini(CONF_PATH . 'db.ini', 'db');
+        \huimang\db\Db::init($cfg->toArray());
+    }
+
+    /**
+     * 初始化缓存
+     */
+    public function _initCache()
+    {
+        $cfg = new \Yaf\Config\Ini(CONF_PATH . 'cache.ini', 'cache');
+        \huimang\cache\Cache::init($cfg->toArray());
     }
 
     public function _initConfig()

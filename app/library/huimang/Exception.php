@@ -38,6 +38,7 @@ class Exception extends \Exception
      */
     public static function newEx(string $message, $extra = null)
     {
+        error_log("exception msg:{$message};extra:".var_export($extra, true));
         $exp = new self($message);
         $exp->setExtra($extra);
         return $exp;

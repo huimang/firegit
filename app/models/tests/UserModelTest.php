@@ -14,7 +14,7 @@ class UserModelTest extends PHPUnit_Framework_TestCase
         $ini = new \Yaf\Config\Ini(dirname(__DIR__) . '/../../conf/db.ini', 'db');
         \huimang\db\Db::init($ini->db->toArray());
 
-        require_once dirname(__DIR__).'/UserModel.php';
+        require_once dirname(__DIR__) . '/User.php';
         $uModel = new UserModel();
 
 //        $this->tryInsert($uModel);

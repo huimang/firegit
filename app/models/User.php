@@ -8,7 +8,7 @@ use huimang\db\Db;
  * @author: ronnie
  * @since: 2017/1/13 21:58
  * @copyright: 2017@firegit.com
- * @filesource: UserModel.php
+ * @filesource: User.php
  */
 class UserModel
 {
