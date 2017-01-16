@@ -1,0 +1,48 @@
+<table class="highlight bordered card-panel">
+    <thead>
+    <tr>
+        <th>文件</th>
+        <th>最后提交信息</th>
+        <th>最后提交日期</th>
+        <th>大小</th>
+    </tr>
+    </thead>
+    <?php if (!empty($ppath)): ?>
+        <tr>
+            <td colspan="4">
+                <a class="fa fa-mail-reply" title="返回上级"
+                   href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/tree/<?= $branch ?>/<?= $ppath ?>">
+                    ..
+                </a>
+            </td>
+        </tr>
+    <?php endif ?>
+    <?php foreach ($files['dir'] as $dir): ?>
+        <tr>
+            <td>
+                <a class="fa fa-folder-o"
+                   href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/tree/<?= $branch ?>/<?= $dir['path'] ?>/">
+                    <?= $dir['name'] ?>
+                </a>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    <?php endforeach ?>
+    <?php foreach ($files['file'] as $file): ?>
+        <tr>
+            <td class="col s10">
+                <a class="<?= $file['css'] ?>"
+                   href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/blob/<?= $branch ?>/<?= $file['path'] ?>">
+                    <?= $file['name'] ?>
+                </a>
+            </td>
+            <td></td>
+            <td></td>
+            <td class="col s2">
+                <?= $file['size'] ?>
+            </td>
+        </tr>
+    <?php endforeach ?>
+</table>

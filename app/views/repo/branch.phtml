@@ -1,0 +1,32 @@
+<?php include 'include-tabs.phtml' ?>
+
+<?php if ($branches): ?>
+    <table class="striped bordered card-panel">
+        <thead>
+        <tr>
+            <th width="15%">分支名</th>
+            <th>提交信息</th>
+            <th width="12%">提交日期</th>
+            <th width="8%">作者</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($branches as $branch): ?>
+            <tr>
+                <td>
+                    <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commit/<?= $branch['name'] ?>/">
+                        <?= $branch['name'] ?>
+                    </a>
+                </td>
+                <td><?= $branch['msg'] ?></td>
+                <td><?= date('Y/m/d H:i', $branch['time']) ?></td>
+                <td><?= $branch['author'] ?></td>
+            </tr>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+<?php else: ?>
+    <div class="card-panel">
+        还没有创建过分支
+    </div>
+<?php endif ?>

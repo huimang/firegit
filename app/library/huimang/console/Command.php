@@ -31,6 +31,7 @@ class Command
             array_unshift($args, $cmd);
             $this->cmd = call_user_func_array('sprintf', $args);
         }
+        error_log('command:'.$this->cmd);
     }
 
     /**
@@ -168,7 +169,7 @@ class Command
                     fclose($pipes[1]);
                     $readOutput = false;
                 } else {
-                    $line = fgets($pipes[1], 1024);
+                    $line = fgets($pipes[1]);
                     if ($line !== false) {
                         $line = trim($line, PHP_EOL);
                         $this->outputs[] = $line;
@@ -184,7 +185,7 @@ class Command
                     fclose($pipes[2]);
                     $readError = false;
                 } else {
-                    $line = fgets($pipes[2], 1024);
+                    $line = fgets($pipes[2]);
                     if ($line !== false) {
                         $line = trim($line, PHP_EOL);
                         $this->errors[] = $line;

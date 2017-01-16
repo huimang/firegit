@@ -207,11 +207,22 @@ SHELL;
      */
     public function getRepo($repoId)
     {
-        return Db::get()
+        $repo = Db::get()
             ->table('repo')
             ->where(['repo_id' => $repoId])
             ->whereCause('status', '!=', -1)
             ->getOne();
+        if ($repo) {
+            $this->unpackRepo($repo);
+        }
+        return $repo;
+    }
+
+    private function unpackRepo(&$repo)
+    {
+        if (isset($repo['setting'])) {
+            $repo['setting'] = json_decode($repo['setting'], true);
+        }
     }
 
     /**

@@ -1,0 +1,28 @@
+<?php include 'include-tabs.phtml' ?>
+
+<?php if ($commits): ?>
+    <table class="striped bordered card-panel">
+        <thead>
+        <tr>
+            <th width="15%">版本号</th>
+            <th>提交信息</th>
+            <th width="12%">提交日期</th>
+            <th width="8%">作者</th>
+        </tr>
+        </thead>
+        <?php foreach ($commits as $commit): ?>
+            <tr>
+                <td>
+                    <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commit/<?= $commit['hash'] ?>">
+                        <?= substr($commit['hash'], 0, 8) ?>
+                    </a>
+                </td>
+                <td><?= $commit['msg'] ?></td>
+                <td><?= date('Y/m/d H:i', $commit['time']) ?></td>
+                <td><?= $commit['author'] ?></td>
+            </tr>
+        <?php endforeach ?>
+    </table>
+<?php else: ?>
+    <div class="card-panel">还没有任何提交</div>
+<?php endif ?>

@@ -5,10 +5,13 @@
   "main": "index.js",
   "dependencies": {
     "bootstrap": "^3.3.7",
+    "font-awesome": "^4.7.0",
+    "highlightjs": "^9.8.0",
     "install": "^0.8.4",
     "jquery": "^2.2.4",
     "materialize-css": "^0.97.8",
     "npm": "^4.1.1",
+    "syntaxhighlighter": "^4.0.1",
     "vue": "^2.1.8"
   },
   "devDependencies": {
@@ -20,7 +23,9 @@
     "build.js.jquery": "mkdir ./dist/jquery/ && cp node_modules/jquery/dist/jquery.min.js ./dist/jquery/",
     "build.js.materialize": "mkdir ./dist/materialize && cp node_modules/materialize-css/dist/* ./dist/materialize -r",
     "build.js.vue": "mkdir ./dist/vue/ && cp node_modules/vue/dist/vue.min.js ./dist/vue/",
-    "build.js": "npm run build.js.vue && npm run build.js.materialize && npm run build.js.jquery",
+    "build.js.fontawesome": "mkdir ./dist/font-awesome && cp node_modules/font-awesome/css/ ./node_modules/font-awesome/fonts/ ./dist/font-awesome/ -r",
+    "build.js.highlightjs": "mkdir ./dist/highlightjs && cp node_modules/highlightjs/styles/ ./node_modules/highlightjs/highlight.pack.min.js ./dist/highlightjs/ -r",
+    "build.js": "npm run build.js.vue && npm run build.js.materialize && npm run build.js.jquery && npm run build.js.fontawesome && npm run build.js.highlightjs",
     "build": "npm run build.js"
   },
   "repository": {
