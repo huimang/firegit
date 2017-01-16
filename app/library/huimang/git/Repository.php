@@ -165,7 +165,7 @@ class Repository
         chdir($path);
         $cmd = new Command('git show-ref --' . $type);
         $branches = [];
-        $len = strlen('refs/heads/');
+        $len = strlen("refs/{$type}/");
         $cmd->execute();
         foreach ($cmd->outputs as $line) {
             list($hash, $branch) = preg_split('#[\s\t]+#', $line);
