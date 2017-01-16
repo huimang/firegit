@@ -1,32 +1,32 @@
 <?php include 'include-tabs.phtml' ?>
 
-<div class="card-panel">
-    <?php if ($tags): ?>
-        <table class="striped bordered">
-            <thead>
+<?php if ($tags): ?>
+    <table class="striped bordered card-panel">
+        <thead>
+        <tr>
+            <th width="15%">标签名</th>
+            <th>提交信息</th>
+            <th width="12%">提交日期</th>
+            <th width="8%">作者</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($tags as $tag): ?>
             <tr>
-                <th width="15%">标签名</th>
-                <th>提交信息</th>
-                <th width="12%">提交日期</th>
-                <th width="8%">作者</th>
+                <td>
+                    <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/tree/<?= $tag['name'] ?>/">
+                        <?= $tag['name'] ?>
+                    </a>
+                </td>
+                <td><?= $tag['msg'] ?></td>
+                <td><?= date('Y/m/d H:i', $tag['time']) ?></td>
+                <td><?= $tag['author'] ?></td>
             </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($tags as $tag): ?>
-                <tr>
-                    <td>
-                        <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commit/<?= $tag['name'] ?>/">
-                            <?= $tag['name'] ?>
-                        </a>
-                    </td>
-                    <td><?= $tag['msg'] ?></td>
-                    <td><?= date('Y/m/d H:i', $tag['time']) ?></td>
-                    <td><?= $tag['author'] ?></td>
-                </tr>
-            <?php endforeach ?>
-            </tbody>
-        </table>
-    <?php else: ?>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+<?php else: ?>
+    <div class="card-panel">
         还没有创建过标签
-    <?php endif ?>
-</div>
+    </div>
+<?php endif ?>
