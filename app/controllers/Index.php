@@ -7,7 +7,7 @@
  * @copyright: 2017@hunbasha.com
  * @filesource: Index.php
  */
-class IndexController extends \Yaf\Controller_Abstract
+class IndexController extends BaseController
 {
     public function indexAction()
     {

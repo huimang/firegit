@@ -1,0 +1,15 @@
+<h1>我的帐号</h1>
+
+<form method="post" action="/my/_account/" data-hook="ajax">
+    <div class="input-field">
+        <input id="username" type="text" name="username" class="validate" value="<?=$user['username']?>"/>
+        <label for="username">帐号</label>
+    </div>
+    <div class="input-field">
+        <input id="email" type="email" name="email" class="validate" value="<?=$user['email']?>"/>
+        <label for="email">邮箱</label>
+    </div>
+    <div>
+        <button class="btn waves-effect waves-light" type="submit" name="action">修改</button>
+    </div>
+</form>

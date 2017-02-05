@@ -10,6 +10,14 @@ use Yaf\Bootstrap_Abstract;
  */
 class Bootstrap extends Bootstrap_Abstract
 {
+    public function _initLog()
+    {
+        error_reporting(E_ALL | E_NOTICE | E_WARNING);
+        ini_set('display_errors', 1);
+        ini_set('error_log', LOG_PATH . date('Ymd') . '.log');
+        \Yaf\Dispatcher::getInstance()->catchException(true);
+    }
+
     /**
      * 初始化数据库
      */
@@ -31,13 +39,7 @@ class Bootstrap extends Bootstrap_Abstract
     public function _initConfig()
     {
         \Yaf\Registry::set('config', \Yaf\Application::app()->getConfig());
-    }
 
-    public function _initLog()
-    {
-        error_reporting(E_ALL | E_NOTICE | E_WARNING);
-        ini_set('display_errors', 1);
-        ini_set('error_log', LOG_PATH . date('Ymd') . '.log');
     }
 
     public function _initRouter()
@@ -54,16 +56,24 @@ class Bootstrap extends Bootstrap_Abstract
     public function _initPlugin(\Yaf\Dispatcher $dispatcher)
     {
         $config = \Yaf\Registry::get('config');
-        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            $withoutLayouts = array();
-            if (isset($config['application']['view']['withoutLayouts'])) {
-                $withoutLayouts = array_filter(explode(',', $config['application']['view']['withoutLayouts']));
-            }
-            $layout = new LayoutPlugin('layout.phtml');
-            $layout->withoutLayouts = $withoutLayouts;   //本配置中设置不需要布局文件的url
-            $dispatcher->registerPlugin($layout);
+        switch($_SERVER['REQUEST_METHOD']) {
+            case 'GET':
+                $withoutLayouts = [];
+                if (!empty($config['application']['view']['withoutLayouts'])) {
+                    $withoutLayouts = array_filter(explode(',', $config['application']['view']['withoutLayouts']));
+                }
+                $layout = new LayoutPlugin('layout.phtml');
+                $layout->withoutLayouts = $withoutLayouts;   //本配置中设置不需要布局文件的url
+                $dispatcher->registerPlugin($layout);
 
-            \Yaf\Registry::set('layout', $layout);
+                \Yaf\Registry::set('layout', $layout);
+                break;
+            case 'POST':
+            case 'PUT':
+            case 'DELETE':
+                $post = new PostPlugin();
+                $dispatcher->registerPlugin($post);
+                break;
         }
     }
 }

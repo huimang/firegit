@@ -39,7 +39,7 @@ class LayoutPlugin extends \Yaf\Plugin_Abstract
 
     public function postDispatch(Request_Abstract $request, Response_Abstract $response)
     {
-        if ($request->getMethod() !== 'GET') {
+        if ($request->getMethod() !== 'GET' || !empty(\Yaf\Registry::get('disableView'))) {
             return;
         }
         $module = strtolower($request->getModuleName());

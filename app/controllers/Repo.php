@@ -8,7 +8,7 @@ use huimang\git\Repository;
  * @copyright: 2017@firegit.com
  * @filesource: Repo.php
  */
-class RepoController extends \Yaf\Controller_Abstract
+class RepoController extends BaseController
 {
     private $repo;
     private $repoPath;
@@ -18,8 +18,10 @@ class RepoController extends \Yaf\Controller_Abstract
     /**
      * 载入repo信息
      */
-    private function loadRepo()
+    public function init()
     {
+        parent::init();
+        
         $repo = new RepoModel();
         $repo = $repo->getRepo($_GET['repo_id']);
         if (!$repo) {
@@ -60,8 +62,6 @@ class RepoController extends \Yaf\Controller_Abstract
 
     public function indexAction()
     {
-        $this->loadRepo();
-
         $files = \huimang\git\Repository::lsTree($this->repoPath, $this->branch);
 
         $this->packFiles($files['file']);
@@ -76,8 +76,6 @@ class RepoController extends \Yaf\Controller_Abstract
      */
     public function treeAction()
     {
-        $this->loadRepo();
-
         $files = \huimang\git\Repository::lsTree($this->repoPath, $this->branch, $this->file);
 
         $this->packFiles($files['file']);
@@ -140,8 +138,6 @@ class RepoController extends \Yaf\Controller_Abstract
      */
     public function blobAction()
     {
-        $this->loadRepo();
-
         $content = \huimang\git\Repository::catFile($this->repoPath, $this->branch, $this->file);
 
         $ppath = dirname($this->file);
@@ -172,8 +168,6 @@ class RepoController extends \Yaf\Controller_Abstract
 
     public function commitAction()
     {
-        $this->loadRepo();
-
         $this->_view->repoNav = 'commit';
 
         $datas = Repository::lsCommits($this->repoPath, $this->branch, 60);
@@ -183,7 +177,6 @@ class RepoController extends \Yaf\Controller_Abstract
 
     public function branchAction()
     {
-        $this->loadRepo();
         $this->_view->repoNav = 'branch';
 
         $branches = Repository::lsBranches($this->repoPath);
@@ -192,7 +185,6 @@ class RepoController extends \Yaf\Controller_Abstract
 
     public function tagAction()
     {
-        $this->loadRepo();
         $this->_view->repoNav = 'tag';
 
         $tags = Repository::lsTags($this->repoPath);

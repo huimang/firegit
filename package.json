@@ -11,6 +11,7 @@
     "jquery": "^2.2.4",
     "materialize-css": "^0.97.8",
     "npm": "^4.1.1",
+    "octicons": "^5.0.1",
     "syntaxhighlighter": "^4.0.1",
     "vue": "^2.1.8"
   },
@@ -25,7 +26,8 @@
     "build.js.vue": "mkdir ./dist/vue/ && cp node_modules/vue/dist/vue.min.js ./dist/vue/",
     "build.js.fontawesome": "mkdir ./dist/font-awesome && cp node_modules/font-awesome/css/ ./node_modules/font-awesome/fonts/ ./dist/font-awesome/ -r",
     "build.js.highlightjs": "mkdir ./dist/highlightjs && cp node_modules/highlightjs/styles/ ./node_modules/highlightjs/highlight.pack.min.js ./dist/highlightjs/ -r",
-    "build.js": "npm run build.js.vue && npm run build.js.materialize && npm run build.js.jquery && npm run build.js.fontawesome && npm run build.js.highlightjs",
+    "build.js.octicons": "mkdir ./dist/octicons && cp node_modules/octicons/build/* ./dist/octicons/ -r",
+    "build.js": "npm run build.js.vue && npm run build.js.materialize && npm run build.js.jquery && npm run build.js.fontawesome && npm run build.js.highlightjs && npm run build.js.octicons",
     "build": "npm run build.js"
   },
   "repository": {

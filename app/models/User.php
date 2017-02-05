@@ -165,6 +165,17 @@ class UserModel
         }
         $db = Db::get();
 
+        // 获取用户
+        $user = $this->getUser($userId);
+        if (!$user) {
+            throw Exception::newEx('user.userNotFound');
+        }
+
+        // 检查是否修改过帐号
+        if (isset($body['username']) && $body['username'] == $user['username']) {
+            unset($body['username']);
+        }
+
         if (isset($body['username'])) {
             $body['username'] = trim($body['username']);
             if (!$this->checkUsername($body['username'])) {
@@ -173,11 +184,16 @@ class UserModel
             // 检查用户名是否存在
             $exist = $db->table('user')
                 ->whereCause('user_id', '!=', $userId)
-                ->where(['user_name' => $body['username']])
+                ->where(['username' => $body['username']])
                 ->getExist();
             if ($exist) {
                 throw new Exception('user.usernameExisted');
             }
+        }
+
+        // 检查是否修改过email
+        if (isset($body['email']) && $body['email'] == $user['email']) {
+            unset($body['email']);
         }
 
         if (isset($body['email'])) {
@@ -193,6 +209,10 @@ class UserModel
             if ($exist) {
                 throw new Exception('user.emailExisted');
             }
+        }
+
+        if (empty($body)) {
+            return;
         }
 
         $this->tidyUserData($body);
@@ -260,10 +280,15 @@ class UserModel
             return -1;
         }
         $db = Db::get();
-        $user = $db->table('user')
-            ->field('user_id', 'salt', 'password', 'status')
-            ->where(['username' => $username])
-            ->whereCause('status', '!=', self::STATUS_DELETE)
+        $db = $db->table('user')
+            ->field('user_id', 'salt', 'password', 'status');
+        // 根据是否包含@判断是否为邮箱
+        if (strpos($username, '@') === false) {
+            $db->where(['username' => $username]);
+        } else {
+            $db->where(['email' => $username]);
+        }
+        $user = $db->whereCause('status', '!=', self::STATUS_DELETE)
             ->getOne();
         if (!$user) {
             return -2;

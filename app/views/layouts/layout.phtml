@@ -7,39 +7,137 @@
     <link rel="stylesheet" type="text/css" href="/dist/materialize/css/materialize.min.css"/>
     <link rel="stylesheet" type="text/css" href="/dist/font-awesome/css/font-awesome.min.css"/>
     <link rel="stylesheet" type="text/css" href="/dist/highlightjs/styles/rainbow.css"/>
+    <link rel="stylesheet" type="text/css" href="/dist/octicons/octicons.css"/>
     <script src="/dist/jquery/jquery.min.js"></script>
     <script src="/dist/vue/vue.min.js"></script>
     <script src="/dist/materialize/js/materialize.min.js"></script>
     <script src="/dist/highlightjs/highlight.pack.min.js"></script>
     <title>Firegit</title>
     <style>
-        main .container{width:100%;padding:.5rem;}
-        .collection-item .row{margin-bottom: 0;}
-        code.hljs{font-size:0.9rem;}
+        main .container {
+            width: 100%;
+            padding: 1rem;
+        }
+
+        .collection-item .row {
+            margin-bottom: 0;
+        }
+
+        code.hljs {
+            font-size: 0.9rem;
+        }
+
+        #header .brand-logo {
+            margin-left: .5rem;
+        }
+
+        #header .main-menu {
+            margin-left: 10rem;
+        }
     </style>
 </head>
 <body>
 <header>
-<nav>
-    <div class="nav-wrapper">
-        <a href="/" class="brand-logo">Firegit</a>
-        <ul class="hide-on-med-and-down" style="margin-left:7rem;">
-            <li class="active"><a href="/">首页</a></li>
-            <li><a href="/repo/">GIT库</a></li>
-            <li><a href="/merge/">合并请求</a></li>
-        </ul>
-    </div>
-</nav>
+    <nav id="header">
+        <div class="nav-wrapper">
+            <a href="/" class="brand-logo user-menu-link" data-activates="slide-out"><i class="fa fa-bars "></i> Firegit</a>
+            <ul class="hide-on-med-and-down main-menu">
+                <li class="active"><a href="/">首页</a></li>
+                <li><a href="/repo/">GIT库</a></li>
+                <li><a href="/merge/">合并请求</a></li>
+            </ul>
+            <ul class="hide-on-med-and-down right">
+                <?php if (!empty($layout['user'])): ?>
+                    <li><a href="/account/logout/"><i class="fa fa-sign-out"></i>&nbsp;注销</a></li>
+                <?php endif ?>
+            </ul>
+        </div>
+        <?php if (!empty($layout['user'])): ?>
+            <ul id="slide-out" class="side-nav">
+                <li>
+                    <div class="userView">
+                        <a href="/my/avatar/"><i class="fa fa-user"></i></a>
+                        <a href="/my/account/"><span class="name"><?= $layout['user']['username'] ?></span></a>
+                        <span class="email"><?= $layout['user']['realname'] ?></span>
+                    </div>
+                </li>
+                <li><a href="/my/account/"><i class="fa fa-id-card"></i>帐号</a></li>
+                <li><a href="/my/password/"><i class="fa fa-key"></i>密码</a></li>
+                <li><a href="/my/avatar/"><i class="fa fa-user"></i>头像</a></li>
+                <li>
+                    <div class="divider"></div>
+                </li>
+                <li><a href="/my/repo/">我的项目</a></li>
+            </ul>
+        <?php endif ?>
+    </nav>
+
+
 </header>
 <main>
     <div class="container">
-        <?=$content?>
+        <?= $content ?>
     </div>
 </main>
 <footer>
 
 </footer>
-<script>hljs.initHighlightingOnLoad();</script>
+<script>
+    <?php if(!empty($layout['user'])):?>
+    $('.user-menu-link').sideNav();
+    <?php endif?>
+    hljs.initHighlightingOnLoad();
+
+    (function () {
+        var modalElem = $('<div class="modal">' +
+            '<div class="modal-content"><h4></h4><p></p></div>' +
+            '<div class="modal-footer"><a class="modal-action modal-close btn-flat">关闭</a>' +
+            '</div>' +
+            '</div>');
+        var onComplete;
+        modalElem.appendTo(document.body);
+        modalElem.modal({
+            dismissible: true,
+            opacity: .5,
+            complete: function () {
+                onComplete && onComplete();
+            }
+        });
+        $('form[data-hook="ajax"]').submit(function (e) {
+            var form = $(this);
+            var url = form.attr('action');
+            $.ajax({
+                type: this.method,
+                url: url,
+                data: form.serialize(),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret.status == 'ok') {
+                        onComplete = function () {
+                            location.href = form.data('rurl') || document.URL;
+                        };
+                        modalElem.find('.modal-content h4').html('<i class="fa fa-check"></i>' + (form.data('success') || '操作成功'));
+                        modalElem.find('.modal-content p').html('');
+                        modalElem.modal('open');
+                        return;
+                    }
+
+                    console.log(ret.desc);
+                    onComplete = null;
+                    modalElem.find('.modal-content h4').html('<i class="fa fa-warning"></i>操作失败');
+                    modalElem.find('.modal-content p').html(
+                        (ret.desc ? '<h5>' + ret.desc + '</h5>' : '') +
+                        '状态：<code>' + ret.status +
+                        '<br/>错误码：<code>' + ret.msg + '</code>'
+                    );
+                    modalElem.modal('open');
+                }
+            });
+            return false;
+        });
+    })();
+
+</script>
 </body>
 </body>
 </html>
