@@ -1,0 +1,31 @@
+<h1>我的项目</h1>
+<?php if ($repos): ?>
+    <table class="striped bordered card-panel">
+        <thead>
+        <tr>
+            <th width="15%">ID</th>
+            <th>库名</th>
+            <th width="15%">角色</th>
+            <th width="15%">加入日期</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($repos as $repo): ?>
+            <tr>
+                <td><?=$repo['repo_id']?></td>
+                <td>
+                    <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/">
+                        <?= $repo['group'] ?>/<?=$repo['name']?>
+                    </a>
+                </td>
+                <td><?= $repo['role_name'] ?></td>
+                <td><?= date('Y/m/d H:i', $repo['create_time'])?></td>
+            </tr>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+<?php else: ?>
+    <div class="card-panel">
+        还没有过项目
+    </div>
+<?php endif ?>

@@ -236,4 +236,35 @@ SHELL;
             throw new Exception('repo.repoNameIllegal');
         }
     }
+
+
+    /**
+     * 获取用户的GIT库
+     * @param int $userId
+     * @return array
+     */
+    public function getUserRepos(int $userId)
+    {
+        $db = Db::get();
+        $userRepos = $db
+            ->table('repo_user')
+            ->where(['user_id' => $userId])
+            ->order('create_time')
+            ->get();
+        if (!$userRepos) {
+            return [];
+        }
+
+        $repoIds = array_column($userRepos, 'repo_id');
+        $repos = $db->table('repo')
+            ->field('repo_id', 'group', 'name')
+            ->in('repo_id', $repoIds)
+            ->where(['status' => 1])
+            ->get();
+        $repos = array_column($repos, null, 'repo_id');
+        foreach ($userRepos as $key => $row) {
+            $userRepos[$key] = array_merge($row, $repos[$row['repo_id']]);
+        }
+        return $userRepos;
+    }
 }

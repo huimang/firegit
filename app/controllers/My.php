@@ -32,4 +32,19 @@ class MyController extends BaseController
             'username' => $_POST['username'],
         ]);
     }
+
+    private $roles = [
+        1 => '普通',
+        2 => '管理员',
+    ];
+
+    public function repoAction()
+    {
+        $model = new RepoModel();
+        $repos = $model->getUserRepos($this->userId);
+        foreach ($repos as &$repo) {
+            $repo['role_name'] = $this->roles[$repo['role']];
+        }
+        $this->_view->repos = $repos;
+    }
 }
