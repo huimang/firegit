@@ -59,7 +59,7 @@ class DbImpl
     /**
      * @var array sortBy
      */
-    private $sorts = [];
+    private $orders = [];
     /**
      * @var string limit
      */
@@ -162,7 +162,7 @@ class DbImpl
         $this->causes = [];
         $this->params = [];
         $this->groups = [];
-        $this->sorts = [];
+        $this->orders = [];
         $this->limits = null;
         $this->saves = [];
         $this->datas = [];
@@ -276,7 +276,7 @@ class DbImpl
             return $this;
         }
         $args = array_fill(0, $num, '?');
-        return $this->where("`$key` in(" . explode(',', $args) . ")", $args);
+        return $this->where("`$key` in(" . implode(',', $args) . ")", $list);
     }
 
     /**
@@ -297,9 +297,9 @@ class DbImpl
      * @param bool $desc
      * @return $this
      */
-    public function sort(string $key, $desc = true)
+    public function order(string $key, $desc = true)
     {
-        $this->sorts[] = "`$key` " . ($desc ? 'desc' : 'asc');
+        $this->orders[] = "`$key` " . ($desc ? 'desc' : 'asc');
         return $this;
     }
 
@@ -348,7 +348,7 @@ class DbImpl
      */
     public function execute(string $sql, array $args = [])
     {
-        error_log("sql:{$sql};args:".var_export($args, true));
+        error_log("sql:{$sql};args:" . var_export($args, true));
         // 获取sql的类型
         list($action) = explode(' ', $sql, 2);
         $action = strtolower($action);
@@ -373,7 +373,7 @@ class DbImpl
         $pdo = $this->getConn($write);
         $sth = $pdo->prepare($sql);
         if ($sth->execute($args) === false) {
-            throw Exception::newEx('db.error', $sth->errorInfo()[2]);
+            throw Exception::newEx('db.error', ['sql' => $sth->queryString, 'err' => $sth->errorInfo()[2]]);
         }
 
         $row = $sth->rowCount();
@@ -467,8 +467,8 @@ class DbImpl
         if (!empty($this->groups)) {
             $sql .= " GROUP BY " . implode(',', $this->groups);
         }
-        if (!empty($this->sorts)) {
-            $sql .= " SORT " . implode(',', $this->sorts);
+        if (!empty($this->orders)) {
+            $sql .= " ORDER BY " . implode(',', $this->orders);
         }
         if (!empty($this->limits)) {
             $sql .= " LIMIT {$this->limits}";
