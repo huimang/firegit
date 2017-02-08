@@ -61,13 +61,13 @@
                         <span class="email"><?= $layout['user']['realname'] ?></span>
                     </div>
                 </li>
-                <li><a href="/my/account/"><i class="fa fa-id-card"></i>帐号</a></li>
-                <li><a href="/my/password/"><i class="fa fa-key"></i>密码</a></li>
-                <li><a href="/my/avatar/"><i class="fa fa-user"></i>头像</a></li>
+                <li<?=$layout['userNav'] == 'account' ? ' class="active"' : ''?>><a href="/my/account/"><i class="fa fa-id-card"></i>帐号</a></li>
+                <li<?=$layout['userNav'] == 'password' ? ' class="active"' : ''?>><a href="/my/password/"><i class="fa fa-key"></i>密码</a></li>
+                <li<?=$layout['userNav'] == 'avatar' ? ' class="active"' : ''?>><a href="/my/avatar/"><i class="fa fa-user"></i>头像</a></li>
                 <li>
                     <div class="divider"></div>
                 </li>
-                <li><a href="/my/repo/">我的项目</a></li>
+                <li<?=$layout['userNav'] == 'repo' ? ' class="active"' : ''?>><a href="/my/repo/">我的项目</a></li>
             </ul>
         <?php endif ?>
     </nav>

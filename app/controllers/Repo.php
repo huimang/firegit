@@ -21,7 +21,7 @@ class RepoController extends BaseController
     public function init()
     {
         parent::init();
-        
+
         $repo = new RepoModel();
         $repo = $repo->getRepo($_GET['repo_id']);
         if (!$repo) {
@@ -34,22 +34,26 @@ class RepoController extends BaseController
         $uri = substr($uri, 6); // 去掉/tree/
         $uri = preg_replace('#^[a-z]+/#', '', $uri);
         if ($uri) {
-            // 算出分支和file
-            $branches = array_keys(Repository::lsBranches($this->repoPath));
-            $found = false;
-            for ($i = count($branches) - 1; $i >= 0; $i--) {
-                $_branch = $branches[$i];
-                if (strpos($uri, $_branch.'/') === 0) {
-                    $found = true;
-                    $this->branch = $_branch;
-                    $this->file = rtrim(substr($uri, strlen($_branch) + 1), '/');
-                    break;
+            if (preg_match('#^([a-z0-9]{40})(?:\/(.*))?$#', $uri, $ms)) {
+                $this->branch = $ms[1];
+                $this->file = $ms[2] ?? '';
+            } else {
+                // 算出分支和file
+                $branches = array_keys(Repository::lsBranches($this->repoPath));
+                $found = false;
+                for ($i = count($branches) - 1; $i >= 0; $i--) {
+                    $_branch = $branches[$i];
+                    if (strpos($uri, $_branch . '/') === 0) {
+                        $found = true;
+                        $this->branch = $_branch;
+                        $this->file = rtrim(substr($uri, strlen($_branch) + 1), '/');
+                        break;
+                    }
+                }
+                if (!$found) {
+                    throw new \huimang\Exception('notfound');
                 }
             }
-            if (!$found) {
-                throw new \huimang\Exception('notfound');
-            }
-
         } else {
             $this->branch = 'master';
             $this->file = '';
@@ -57,6 +61,7 @@ class RepoController extends BaseController
 
         $this->_view->repo = $repo;
         $this->_view->branch = $this->branch;
+        $this->_view->repoNav = $this->_request->action;
     }
 
 
@@ -166,27 +171,41 @@ class RepoController extends BaseController
     }
 
 
-    public function commitAction()
+    /**
+     * 项目的提交
+     */
+    public function commitsAction()
     {
-        $this->_view->repoNav = 'commit';
-
         $datas = Repository::lsCommits($this->repoPath, $this->branch, 60);
         $this->_view->commits = $datas['commits'];
         $this->_view->next = $datas['next'];
     }
 
+    /**
+     * 单个commit
+     */
+    public function commitAction()
+    {
+        $hash = $this->_request->getParam('hash');
+
+        $commit = Repository::getCommit($this->repoPath, $this->branch, 1);
+        $this->_view->commit = $commit;
+    }
+
+    public function diffAction()
+    {
+        $diffs = Repository::lsDiffs($this->repoPath, $this->branch, $this->file);
+        $this->_view->diffs = $diffs;
+    }
+
     public function branchAction()
     {
-        $this->_view->repoNav = 'branch';
-
         $branches = Repository::lsBranches($this->repoPath);
         $this->_view->branches = $branches;
     }
 
     public function tagAction()
     {
-        $this->_view->repoNav = 'tag';
-
         $tags = Repository::lsTags($this->repoPath);
         $this->_view->tags = $tags;
     }

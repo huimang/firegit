@@ -1,28 +1,74 @@
-<?php include 'include-tabs.phtml' ?>
+<style>
+    .diffs td {
+        padding: 0;
+        border-radius: 0;
+    }
 
-<?php if ($commits): ?>
-    <table class="striped bordered card-panel">
-        <thead>
-        <tr>
-            <th width="15%">版本号</th>
-            <th>提交信息</th>
-            <th width="12%">提交日期</th>
-            <th width="8%">作者</th>
-        </tr>
-        </thead>
-        <?php foreach ($commits as $commit): ?>
-            <tr>
-                <td>
-                    <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commit/<?= $commit['hash'] ?>">
-                        <?= substr($commit['hash'], 0, 8) ?>
-                    </a>
-                </td>
-                <td><?= $commit['msg'] ?></td>
-                <td><?= date('Y/m/d H:i', $commit['time']) ?></td>
-                <td><?= $commit['author'] ?></td>
-            </tr>
-        <?php endforeach ?>
-    </table>
-<?php else: ?>
-    <div class="card-panel">还没有任何提交</div>
-<?php endif ?>
+    .diffs tr {
+    }
+
+    .diffs tr.insect:hover, .diffs tr.delete:hover, .diffs tr:hover {
+        background: #00AAAA;
+        color: #fff;
+    }
+
+    .diffs tr.insect {
+        background: rgba(29, 236, 253, 0.2);
+    }
+
+    .diffs tr.delete {
+        background: rgba(253, 101, 29, 0.15);
+    }
+
+    .diffs .line {
+        font-size: 0.8rem;
+        color: #999988;
+        text-align: right;
+        padding-right: 0.2rem;
+        padding-left: 0.8rem;
+        width: 2.5rem;
+    }
+
+    .diffs .line-to {
+        color: #cfcfcf;
+    }
+
+    .diffs .text {
+        font-size: 0.95rem;
+    }
+</style>
+
+<h2><?= $commit['msg'] ?></h2>
+<?= $commit['author']['name'] ?> 提交于 <?= date('y/m/d H:i', $commit['author']['date']) ?><br/>
+<?= $commit['tstats']['file'] ?>个文件发生变化，<?php if ($commit['tstats']['insect']): ?>增加<?= $commit['tstats']['insect'] ?>行，<?php endif ?>
+<?php if ($commit['tstats']['delete']): ?>删除<?= $commit['tstats']['delete'] ?>行<?php endif ?>。
+
+<ul class="collection">
+    <?php foreach ($commit['stats'] as $key => $stat): ?>
+        <li class="collection-item">
+            <?= $key + 1 ?>.&nbsp;
+            <?php if ($stat['insect'] != 0 || $stat['delete'] != 0): ?>
+                <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/diff/<?= $branch ?>/<?= $stat['file'] ?>"><?= $stat['file'] ?></a>
+                &nbsp;&nbsp;
+                <?php if ($stat['insect']): ?><small>+<?= $stat['insect'] ?></small>&nbsp;<?php endif ?>
+                <?php if ($stat['delete']): ?><small>-<?= $stat['delete'] ?></small><?php endif ?>
+            <?php else: ?>
+                <?= $stat['file'] ?>
+            <?php endif ?>
+            <div style="display:none"></div>
+        </li>
+    <?php endforeach ?>
+</ul>
+
+<script>
+    $('.collection-item > a').on('click', function () {
+        var next = $(this).nextAll('div').eq(0);
+        if (!next.html()) {
+            $.get(this.href, function (html) {
+                next.html(html);
+            });
+        }
+        next.toggle();
+        return false;
+    });
+</script>

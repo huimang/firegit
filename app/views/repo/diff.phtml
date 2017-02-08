@@ -1,0 +1,19 @@
+<table class="diffs">
+    <?php foreach ($diffs as $diff): ?>
+        <tr class="<?= $diff['type'] ?>">
+            <td width="20" class="line line-from">
+                <?php if ($diff['type'] != 'insect'): ?>
+                    <?= $diff['from'] ?? '' ?>
+                <?php endif ?>
+            </td>
+            <td width="20" class="line line-to">
+                <?php if ($diff['type'] != 'delete'): ?>
+                    <?= $diff['to'] ?? '' ?>
+                <?php endif ?>
+            </td>
+            <td class="text">
+                <?= str_replace(' ', '&nbsp;', htmlentities($diff['line'])) ?>
+            </td>
+        </tr>
+    <?php endforeach ?>
+</table>

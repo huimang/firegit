@@ -113,6 +113,275 @@ class Repository
     }
 
     /**
+     * 获取提交信息
+     * @param string $path
+     * @param string $hash
+     * @param int $type 0 只获取commit信息 1 获取commit的变化的文件
+     * @return array
+     * [
+     *  'merge' => 是否为合并
+     *  'mergeFrom' => 从哪个commit合并过来
+     *  'tree' => tree的hash值
+     *  'parent' => 上一个commit的hash值
+     *  'author' => [
+     *     'name' => 名称
+     *     'email' => 邮件
+     *     'date' => 日期
+     *  ],
+     *  'commiter' => [
+     *     'name' => 名称
+     *     'email' => 邮件
+     *     'date' => 日期
+     *   ],
+     *  'stats' => [
+     *     [
+     *       'file' => 文件,
+     *       'insect' => 插入行数
+     *       'delete' => 删除行数
+     *      ]
+     *   ],
+     *   'tstats' => [
+     *      'file' => 影响文件数量
+     *      'insect' => 总共插入行数
+     *      'delete' => 总共删除行数
+     *    ]
+     * ]
+     */
+    public static function getCommit(string $path, string $hash, $type = 0)
+    {
+        chdir($path);
+        $cmd = new Command(
+            'git log %s -1 --format=%s %s',
+            self::normalBranch($hash),
+            'raw',
+            $type == 1 ? '--numstat' : ''
+        );
+        $commit = [
+            'merge' => false,
+            'stats' => [],
+            'tstats' => [
+                'file' => 0,
+                'insect' => 0,
+                'delete' => 0
+            ]
+        ];
+        $cmd->execute();
+        $lineType = 0;
+        foreach ($cmd->outputs as $line) {
+            switch ($lineType) {
+                case 0:
+                    if ($line == '') {
+                        $lineType = 1;
+                        continue;
+                    }
+                    $arr = explode(' ', $line);
+                    switch ($arr[0]) {
+                        case 'parent':
+                            if (isset($commit['parent'])) {
+                                $commit['merge'] = true;
+                                $commit['mergeFrom'] = $arr[1];
+                            } else {
+                                $commit['parent'] = $arr[1];
+                            }
+                            break;
+                        case 'author':
+                        case 'committer':
+                            $commit[$arr[0]] = [
+                                'name' => $arr[1],
+                                'email' => trim($arr[2], '<>'),
+                                'date' => self::getLocalTime($arr[3], $arr[4]),
+                            ];
+                            break;
+                    }
+                    break;
+                case 1:
+                    if ($line == '') {
+                        $lineType = 2;
+                        $commit['msg'] = implode("\n", $commit['msg']);
+                        continue;
+                    }
+                    $commit['msg'][] = ltrim($line);
+                    break;
+                case 2:
+                    list($insect, $delete, $file) = preg_split('#\s+#', $line, 3);
+                    $commit['stats'][] = array(
+                        'file' => $file,
+                        'insect' => $insect,
+                        'delete' => $delete,
+                    );
+                    $commit['tstats']['file']++;
+                    $commit['tstats']['insect'] += $insect;
+                    $commit['tstats']['delete'] += $delete;
+                    break;
+            }
+        }
+        return $commit;
+    }
+
+
+    /**
+     * 获取文件的变化
+     * @param string $path
+     * @param string $hash
+     * @param string $file
+     * @param null $fromHash
+     * @return array
+     */
+    public static function lsDiffs(string $path, string $hash, string $file, $fromHash = null)
+    {
+        $commit = self::getCommit($path, $hash, 0);
+        // 检查是否为第1个commit
+        if (!isset($commit['parent'])) {
+            $cmd = new Command('git ls-tree %s %s', self::normalBranch($hash), $file);
+            if (!$cmd->execute() && !empty($cmd->outputs)) {
+                $line = $cmd->outputs[0];
+                $arr = preg_split('#\s+#', $line, 4);
+                $blobHash = $arr[2];
+                $cmd = new Command('git cat-file -p %s', $blobHash);
+                $cmd->execute();
+                $blocks = [];
+                foreach ($cmd->outputs as $key => $line) {
+                    $number = $key + 1;
+                    $blocks[] = [
+                        'from' => 0,
+                        'to' => $number,
+                        'type' => 'insect',
+                        'line' => $line,
+                    ];
+                }
+                return $blocks;
+            }
+            return false;
+        }
+
+        // 加入有对比
+        $cmd = new Command(
+            'git diff %s..%s -- %s',
+            $fromHash === null ? $commit['parent'] : $hash,
+            $hash,
+            $file
+        );
+        $cmd->execute();
+
+        $blocks = [];
+        $fromLine = 0;
+        $toLine = 0;
+
+        for ($i = 0, $l = count($cmd->outputs); $i < $l; $i++) {
+            $line = $cmd->outputs[$i];
+            if (strpos($line, 'diff --git ') === 0) {
+                $arr = explode(' ', $line);
+
+                // 查找下一行
+                $i++;
+                $line = $cmd->outputs[$i];
+                if (strncmp($line, 'index', 5) !== 0) {
+                    $i++;
+                    $line = $cmd->outputs[$i];
+                }
+                $arr = preg_split('#(\s|\.\.)#', $line);
+
+                $lastLine = $line;
+                // 跨越两行
+                $i++;
+                //可能是已结是文件的结尾  跨越两行未定义跨一行！！
+                $line = $cmd->outputs[$i];
+                if ($line === false) {
+                    $line = $lastLine;
+                }
+                if (strncmp($line, 'Binary', 6) === 0) {
+                    $diff['type'] = 'bin';
+                } else {
+                    $diff['type'] = 'file';
+                    $i++;
+                }
+            } else {
+                if (strpos($line, '@@ -') === 0) {
+                    if ($blocks) {
+                        $diff['blocks'][] = $blocks;
+                    }
+                    $blocks = array();
+
+                    $arr = explode(' ', $line, 5);
+                    list($fromLine) = explode(',', substr($arr[1], 1));
+                    list($toLine) = explode(',', substr($arr[2], 1));
+                    $fromLine--;
+                    $toLine--;
+                    $blocks[] = array(
+                        'from' => $fromLine,
+                        'to' => $toLine,
+                        'line' => $line,
+                        'type' => 'both',
+                    );
+                } else {
+                    if ($line) {
+                        switch ($line[0]) {
+                            case '-': // 表示是起始commit的文件
+                                $fromLine++;
+                                $blocks[] = array(
+                                    'from' => $fromLine,
+                                    'line' => $line,
+                                    'type' => 'delete',
+                                );
+                                break;
+                            case '+':
+                                $toLine++;
+                                $blocks[] = array(
+                                    'to' => $toLine,
+                                    'line' => $line,
+                                    'type' => 'insect',
+                                );
+                                break;
+                            case '\\':
+                                $blocks[] = array(
+                                    'line' => $line,
+                                    'type' => 'end',
+                                );
+                                break;
+                            default:
+                                $fromLine++;
+                                $toLine++;
+
+                                $blocks[] = array(
+                                    'from' => $fromLine,
+                                    'to' => $toLine,
+                                    'line' => $line,
+                                    'type' => 'both',
+                                );
+                        }
+                    } else {
+                        $fromLine++;
+                        $toLine++;
+                        $blocks[] = array(
+                            'from' => $fromLine,
+                            'to' => $toLine,
+                            'line' => $line,
+                            'type' => 'both',
+                        );
+                    }
+                }
+            }
+        }
+        return $blocks;
+    }
+
+    /**
+     * 获取本地时间戳
+     * @param $stamp
+     * @param $tz
+     * @param null $curTz
+     * @return int
+     */
+    private static function getLocalTime($stamp, $tz, $curTz = null)
+    {
+        $tz = preg_replace('#^(\-?)(0)?(\d{1,2})00$#', '\1\3', $tz);
+        if ($curTz === null) {
+            $curTz = date('Z');
+        }
+        return $stamp + ($curTz - $tz * 3600);
+    }
+
+    /**
      * 列出提交
      * @param string $path
      * @param string $startHash

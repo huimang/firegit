@@ -58,6 +58,9 @@ class Bootstrap extends Bootstrap_Abstract
         $config = \Yaf\Registry::get('config');
         switch($_SERVER['REQUEST_METHOD']) {
             case 'GET':
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
+                    break;
+                }
                 $withoutLayouts = [];
                 if (!empty($config['application']['view']['withoutLayouts'])) {
                     $withoutLayouts = array_filter(explode(',', $config['application']['view']['withoutLayouts']));
