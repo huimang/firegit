@@ -14,6 +14,11 @@ abstract class BaseController extends \Yaf\Controller_Abstract
     protected $userId = 0;
 
     /**
+     * @var LayoutPlugin
+     */
+    protected $_layout;
+
+    /**
      * 初始化
      */
     public function init()
@@ -34,12 +39,12 @@ abstract class BaseController extends \Yaf\Controller_Abstract
         $raw = $mask->decrypt($userCookie);
         $arr = explode(',', $raw);
         $vcode = array_pop($arr);
-        if ($vcode != md5(implode(',', $arr).'hell0World')) {
-            error_log('cookie.wrongVcode cookie:'.$raw);
+        if ($vcode != md5(implode(',', $arr) . 'hell0World')) {
+            error_log('cookie.wrongVcode cookie:' . $raw);
             throw new \huimang\Exception('login');
         }
         if (count($arr) != 5) {
-            error_log('cookie.wrongLength cookie:'.$raw);
+            error_log('cookie.wrongLength cookie:' . $raw);
             throw new \huimang\Exception('login');
         }
         $expire = array_pop($arr);
@@ -55,8 +60,10 @@ abstract class BaseController extends \Yaf\Controller_Abstract
         ];
         $this->userId = $arr[0];
 
-        if ($this->_request->method == 'GET') {
-                \Yaf\Registry::get('layout')->user = $this->user;
+        $this->_layout = \Yaf\Registry::get('layout');
+        if ($this->_layout) {
+            $this->_layout->user = $this->user;
+            $this->_layout->userNav = '';
         }
     }
 

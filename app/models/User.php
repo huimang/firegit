@@ -15,7 +15,7 @@ class UserModel
     const SALT_MASK = 'sdfw3@23145Ds&*';
     const USERNAME_RULE = '#^[a-z][a-zA-Z0-9\.\_\-\@\*\$]{5,19}$#';
     // 密码禁止的规则
-    const PWD_FORBIDDEN_RULE = '#^([0-9]+|[a-z]+|[A-Z]+)$#';
+    const PWD_RULE = '#^\w{6,12}$#';
 
     const STATUS_DELETE = -1;
     const STATUS_FORBIDDEN = 0;
@@ -325,10 +325,10 @@ class UserModel
     private function checkPassword($password)
     {
         $len = strlen($password);
-        if ($len < 6 || $len > 20) {
+        if ($len < 6 || $len > 12) {
             throw new Exception('user.pwdLengthError');
         }
-        if (preg_match(self::PWD_FORBIDDEN_RULE, $password)) {
+        if (!preg_match(self::PWD_RULE, $password)) {
             throw new Exception('user.pwdFormatError');
         }
     }

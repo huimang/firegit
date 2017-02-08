@@ -15,6 +15,9 @@ class MyController extends BaseController
         $model = new UserModel();
         $user = $model->getUser($this->userId);
         $this->_view->user = $user;
+        if ($this->_layout) {
+            $this->_layout->userNav = $this->_request->action;
+        }
     }
 
     public function accountAction()
@@ -46,5 +49,21 @@ class MyController extends BaseController
             $repo['role_name'] = $this->roles[$repo['role']];
         }
         $this->_view->repos = $repos;
+    }
+
+    public function passwordAction()
+    {
+        $this->_layout->userNav = 'password';
+    }
+
+    public function _passwordAction()
+    {
+        $oldPwd = $_POST['oldpwd'];
+        $newPwd = $_POST['newpwd'];
+        $model = new UserModel();
+        $model->updatePassword($this->userId, $oldPwd, $newPwd);
+
+        // 注销登录
+        setcookie('fgu', null, 0, '/');
     }
 }
