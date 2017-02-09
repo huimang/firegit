@@ -1,45 +1,29 @@
-<style>
-    .diffs td {
-        padding: 0;
-        border-radius: 0;
-    }
-
-    .diffs tr {
-    }
-
-    .diffs tr.insect:hover, .diffs tr.delete:hover, .diffs tr:hover {
-        background: #00AAAA;
-        color: #fff;
-    }
-
-    .diffs tr.insect {
-        background: rgba(29, 236, 253, 0.2);
-    }
-
-    .diffs tr.delete {
-        background: rgba(253, 101, 29, 0.15);
-    }
-
-    .diffs .line {
-        font-size: 0.8rem;
-        color: #999988;
-        text-align: right;
-        padding-right: 0.2rem;
-        padding-left: 0.8rem;
-        width: 2.5rem;
-    }
-
-    .diffs .line-to {
-        color: #cfcfcf;
-    }
-
-    .diffs .text {
-        font-size: 0.95rem;
-    }
-</style>
-
+<?= substr($commit['commit'], 0, 8) ?>&nbsp;<?= $commit['author']['name'] ?> 提交于 <?= date('y/m/d H:i',
+    $commit['author']['date']) ?><br/>
 <h2><?= $commit['msg'] ?></h2>
-<?= $commit['author']['name'] ?> 提交于 <?= date('y/m/d H:i', $commit['author']['date']) ?><br/>
+<div class="card">
+    <div class="card-content">
+        <?php switch (count($commit['parent'])):
+            case 0:
+                break;
+            case 1:
+                echo '前一个提交：';
+                break;
+            case 2:
+                echo '合并请求：';
+                break;
+        endswitch;
+        ?>
+        <?php foreach ($commit['parent'] as $parent): ?>
+            <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commit/<?= $parent ?>/"><?= substr($parent, 0,
+                    8) ?></a>
+        <?php endforeach ?>
+        &nbsp;所在分支：
+        <?php foreach($branches as $_branch):?>
+            <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/tree/<?=$_branch['name']?>/"><?=$_branch['name']?></a>
+        <?php endforeach?>
+    </div>
+</div>
 <?= $commit['tstats']['file'] ?>个文件发生变化，<?php if ($commit['tstats']['insect']): ?>增加<?= $commit['tstats']['insect'] ?>行，<?php endif ?>
 <?php if ($commit['tstats']['delete']): ?>删除<?= $commit['tstats']['delete'] ?>行<?php endif ?>。
 
@@ -50,8 +34,10 @@
             <?php if ($stat['insect'] != 0 || $stat['delete'] != 0): ?>
                 <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/diff/<?= $branch ?>/<?= $stat['file'] ?>"><?= $stat['file'] ?></a>
                 &nbsp;&nbsp;
-                <?php if ($stat['insect']): ?><small>+<?= $stat['insect'] ?></small>&nbsp;<?php endif ?>
-                <?php if ($stat['delete']): ?><small>-<?= $stat['delete'] ?></small><?php endif ?>
+                <?php if ($stat['insect']): ?>
+                    <small>+<?= $stat['insect'] ?></small>&nbsp;<?php endif ?>
+                <?php if ($stat['delete']): ?>
+                    <small>-<?= $stat['delete'] ?></small><?php endif ?>
             <?php else: ?>
                 <?= $stat['file'] ?>
             <?php endif ?>

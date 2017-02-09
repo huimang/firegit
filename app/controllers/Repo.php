@@ -190,6 +190,10 @@ class RepoController extends BaseController
 
         $commit = Repository::getCommit($this->repoPath, $this->branch, 1);
         $this->_view->commit = $commit;
+
+        // 获取所在分支
+        $branches = Repository::lsBranchesByCommit($this->repoPath, $this->branch);
+        $this->_view->branches = $branches;
     }
 
     public function diffAction()
@@ -198,13 +202,13 @@ class RepoController extends BaseController
         $this->_view->diffs = $diffs;
     }
 
-    public function branchAction()
+    public function branchesAction()
     {
         $branches = Repository::lsBranches($this->repoPath);
         $this->_view->branches = $branches;
     }
 
-    public function tagAction()
+    public function tagsAction()
     {
         $tags = Repository::lsTags($this->repoPath);
         $this->_view->tags = $tags;

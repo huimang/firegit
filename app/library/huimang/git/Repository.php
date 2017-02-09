@@ -82,7 +82,14 @@ class Repository
     /**
      * 列举分支
      * @param string $path
-     * @return array [$branch => $hash]
+     * @return array
+     * [$branch => [
+     *   'name',
+     *   'hash',
+     *   'time',
+     *   'author',
+     *   'msg',
+     * ]]
      */
     public static function lsBranches(string $path)
     {
@@ -110,6 +117,47 @@ class Repository
             return $branch;
         }
         return 'refs/heads/' . $branch;
+    }
+
+    /**
+     * 获取commit所在分支
+     * @param string $path
+     * @param string $commit
+     * @return array
+     * [$branch => $hash]
+     */
+    public static function lsBranchesByCommit(string $path, string $commit)
+    {
+        $inBranches = [];
+        $branches = self::lsBranches($path);
+        foreach ($branches as $branch) {
+            // 检查是否在和某分支有共同祖先
+            if (self::getCommonHash($path, $branch['hash'], $commit)) {
+                $inBranches[] = $branch;
+            }
+        }
+        return $inBranches;
+    }
+
+    /**
+     * 获取两个commit的共同祖先
+     * @param string $path
+     * @param string $commit1
+     * @param string $commit2
+     * @return string|false
+     */
+    public static function getCommonHash(string $path, string $commit1, string $commit2)
+    {
+        chdir($path);
+        $cmd = new Command(
+            'git merge-base %s %s',
+            self::normalBranch($commit1),
+            self::normalBranch($commit2)
+        );
+        if (!$cmd->execute() && $cmd->outputs) {
+            return $cmd->outputs[0];
+        }
+        return false;
     }
 
     /**
@@ -157,7 +205,7 @@ class Repository
             $type == 1 ? '--numstat' : ''
         );
         $commit = [
-            'merge' => false,
+            'parent' => [],
             'stats' => [],
             'tstats' => [
                 'file' => 0,
@@ -177,12 +225,7 @@ class Repository
                     $arr = explode(' ', $line);
                     switch ($arr[0]) {
                         case 'parent':
-                            if (isset($commit['parent'])) {
-                                $commit['merge'] = true;
-                                $commit['mergeFrom'] = $arr[1];
-                            } else {
-                                $commit['parent'] = $arr[1];
-                            }
+                            $commit['parent'][] = $arr[1];
                             break;
                         case 'author':
                         case 'committer':
@@ -191,6 +234,9 @@ class Repository
                                 'email' => trim($arr[2], '<>'),
                                 'date' => self::getLocalTime($arr[3], $arr[4]),
                             ];
+                            break;
+                        default:
+                            $commit[$arr[0]] = $arr[1];
                             break;
                     }
                     break;
@@ -246,7 +292,6 @@ class Repository
                         'from' => 0,
                         'to' => $number,
                         'type' => 'insect',
-                        'line' => $line,
                     ];
                 }
                 return $blocks;
@@ -257,10 +302,11 @@ class Repository
         // 加入有对比
         $cmd = new Command(
             'git diff %s..%s -- %s',
-            $fromHash === null ? $commit['parent'] : $hash,
+            $fromHash === null ? $commit['parent'][0] : $hash,
             $hash,
             $file
         );
+
         $cmd->execute();
 
         $blocks = [];
@@ -307,12 +353,12 @@ class Repository
                     list($toLine) = explode(',', substr($arr[2], 1));
                     $fromLine--;
                     $toLine--;
-                    $blocks[] = array(
+                    $blocks[] = [
                         'from' => $fromLine,
                         'to' => $toLine,
                         'line' => $line,
-                        'type' => 'both',
-                    );
+                        'type' => 'start',
+                    ];
                 } else {
                     if ($line) {
                         switch ($line[0]) {

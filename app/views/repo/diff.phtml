@@ -2,17 +2,17 @@
     <?php foreach ($diffs as $diff): ?>
         <tr class="<?= $diff['type'] ?>">
             <td width="20" class="line line-from">
-                <?php if ($diff['type'] != 'insect'): ?>
+                <?php if ($diff['type'] != 'insect' && !empty($diff['from']) && $diff['from'] > 0): ?>
                     <?= $diff['from'] ?? '' ?>
                 <?php endif ?>
             </td>
             <td width="20" class="line line-to">
-                <?php if ($diff['type'] != 'delete'): ?>
+                <?php if ($diff['type'] != 'delete' && !empty($diff['to'])): ?>
                     <?= $diff['to'] ?? '' ?>
                 <?php endif ?>
             </td>
-            <td class="text">
-                <?= str_replace(' ', '&nbsp;', htmlentities($diff['line'])) ?>
+            <td class="code">
+                <?= str_replace([' ', "\t"], ['&nbsp;', '&nbsp;&nbsp;&nbsp;&nbsp;'], htmlentities($diff['line'])) ?>
             </td>
         </tr>
     <?php endforeach ?>

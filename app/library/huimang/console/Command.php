@@ -119,6 +119,7 @@ class Command
 
     /**
      * Execute command
+     * @return int 退出码
      */
     public function execute()
     {

@@ -1,0 +1,44 @@
+.diffs td {
+  padding: 0;
+  border-radius: 0;
+}
+
+.diffs tr {
+}
+
+.diffs tr.insect:hover, .diffs tr.delete:hover, .diffs tr:hover {
+  background: #00AAAA;
+  color: #fff;
+}
+
+.diffs tr.insect {
+  background: #eaffea;
+}
+
+.diffs tr.delete {
+  background: #ffecec;
+}
+.diffs tr.start, .diffs tr.start:hover,.diffs tr.start .code,
+.diffs tr.end, .diffs tr.end:hover,.diffs tr.end .code{
+  color:#999999;
+  background: transparent;
+}
+.diffs .line {
+  font-size: 0.8rem;
+  color: #c0c0c0;
+  text-align: right;
+  padding-right: 0.2rem;
+  padding-left: 0.8rem;
+  width: 2.5rem;
+  border-right:solid 1px #C8E6C9;
+}
+
+.diffs .line-to {
+  /*color: #cfcfcf;*/
+}
+
+.diffs .code {
+  padding-left:0.2rem;
+  color: #333333;
+  /*font-family: Consolas, "Source Code Pro";*/
+}
