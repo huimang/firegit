@@ -317,8 +317,6 @@ class Repository
         for ($i = 0, $l = count($cmd->outputs); $i < $l; $i++) {
             $line = $cmd->outputs[$i];
             if (strpos($line, 'diff --git ') === 0) {
-                $arr = explode(' ', $line);
-
                 // 查找下一行
                 $i++;
                 $line = $cmd->outputs[$i];
@@ -326,8 +324,6 @@ class Repository
                     $i++;
                     $line = $cmd->outputs[$i];
                 }
-                $arr = preg_split('#(\s|\.\.)#', $line);
-
                 $lastLine = $line;
                 // 跨越两行
                 $i++;
@@ -344,11 +340,6 @@ class Repository
                 }
             } else {
                 if (strpos($line, '@@ -') === 0) {
-                    if ($blocks) {
-                        $diff['blocks'][] = $blocks;
-                    }
-                    $blocks = array();
-
                     $arr = explode(' ', $line, 5);
                     list($fromLine) = explode(',', substr($arr[1], 1));
                     list($toLine) = explode(',', substr($arr[2], 1));
