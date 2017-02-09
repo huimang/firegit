@@ -132,7 +132,7 @@ class Repository
         $branches = self::lsBranches($path);
         foreach ($branches as $branch) {
             // 检查是否在和某分支有共同祖先
-            if (self::getCommonHash($path, $branch['hash'], $commit)) {
+            if (self::getCommonHash($path, $branch['hash'], $commit) == $commit) {
                 $inBranches[] = $branch;
             }
         }

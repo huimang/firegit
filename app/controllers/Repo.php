@@ -204,6 +204,7 @@ class RepoController extends BaseController
         // 获取所在分支
         $branches = Repository::lsBranchesByCommit($this->repoPath, $this->branch);
         $this->_view->branches = $branches;
+        $this->_view->repoNav = 'commits';
     }
 
     public function diffAction()

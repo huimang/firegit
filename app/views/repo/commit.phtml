@@ -1,13 +1,14 @@
-<?= substr($commit['commit'], 0, 8) ?>&nbsp;<?= $commit['author']['name'] ?> 提交于 <?= date('y/m/d H:i',
-    $commit['author']['date']) ?><br/>
-<h2><?= $commit['msg'] ?></h2>
+<?php include 'include-tabs.phtml' ?>
+
+<h3><?= $commit['msg'] ?></h3>
 <div class="card">
     <div class="card-content">
+        <?= substr($commit['commit'], 0, 8) ?>&nbsp;<?= $commit['author']['name'] ?> 提交于 <?= date('y/m/d H:i', $commit['author']['date']) ?><br/>
         <?php switch (count($commit['parent'])):
             case 0:
                 break;
             case 1:
-                echo '前一个提交：';
+                echo '上一个提交：';
                 break;
             case 2:
                 echo '合并请求：';
