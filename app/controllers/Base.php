@@ -25,6 +25,10 @@ abstract class BaseController extends \Yaf\Controller_Abstract
     {
         if ($this->_request->method != 'GET') {
             $this->disableView();
+        } else {
+            if ($this->_request->action[0] == '_') {
+                throw \huimang\Exception::newEx('mustRequestByPost');
+            }
         }
 
         if (!$this->needLogin) {

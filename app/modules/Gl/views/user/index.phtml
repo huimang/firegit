@@ -1,0 +1,37 @@
+<div>
+    <a href="/gl/user/add" class="btn-floating right" title="添加用户"><i class="fa fa-plus"></i> 添加</a>
+    <h1>用户列表</h1>
+</div>
+<table class="striped bordered card-panel">
+    <tr>
+        <th width="6%">ID</th>
+        <th width="15%">帐号</th>
+        <th width="20%">邮箱</th>
+        <th width="15%">真实姓名</th>
+        <th width="10%">角色</th>
+        <th width="15%">加入日期</th>
+        <th>操作</th>
+    </tr>
+    <?php foreach ($users as $user): ?>
+        <tr>
+            <td><?= $user['user_id'] ?></td>
+            <td><?= $user['username'] ?></td>
+            <td><?= $user['email'] ?></td>
+            <td><?= $user['realname'] ?></td>
+            <td><?= $roles[$user['role']] ?></td>
+            <td><?= date('y/m/d H:i', $user['create_time']) ?></td>
+            <td>
+                <a href="/gl/user/update/<?= $user['user_id'] ?>"><i class="fa fa-edit"></i> 编辑</a>
+                <?php if ($user['user_id'] != $cuser['user_id']): ?>
+                    &nbsp;|&nbsp;
+                    <?php if ($user['status'] == 1): ?>
+                        <a href="/gl/user/_disable/?user_id=<?= $user['user_id'] ?>">禁用</a>
+                    <?php else: ?>
+                        <a href="/gl/user/_enable/?user_id=<?= $user['user_id'] ?>">启用</a>
+                    <?php endif ?>
+                    <a href="/gl/user/_delete/?user_id=<?= $user['user_id'] ?>" data-confirm="你确定要删除该用户吗？" data-success="删除成功"><i class="fa fa-remove"></i> 删除</a>
+                <?php endif ?>
+            </td>
+        </tr>
+    <?php endforeach ?>
+</table>

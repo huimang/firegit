@@ -122,7 +122,7 @@ class UserModel
             }
         }
         if (isset($body['phone'])) {
-            if (!preg_match('#1[3-9][0-9]{9}#', $body['phone'])) {
+            if (!empty($body['phone']) && !preg_match('#1[3-9][0-9]{9}#', $body['phone'])) {
                 throw new Exception('user.phoneIllegal');
             }
         }
@@ -146,6 +146,39 @@ class UserModel
             ->where(['user_id' => intval($userId)])
             ->whereCause('status', '!=', self::STATUS_DELETE)
             ->getOne();
+    }
+
+    /**
+     * 获取用户总数
+     * @return int
+     */
+    public function getUserNum()
+    {
+        return Db::get()
+            ->table('user')
+            ->whereCause('status', '!=', self::STATUS_DELETE)
+            ->getCount();
+    }
+
+    /**
+     * 分页获取用户
+     * @param $num
+     * @param int $userId
+     * @return array
+     */
+    public function getUsers($num, int $userId = 0)
+    {
+        $db = Db::get()
+            ->table('user')
+            ->field('user_id', 'username', 'email', 'realname', 'role', 'status', 'create_time')
+            ->whereCause('status', '!=', self::STATUS_DELETE);
+        if ($userId > 0) {
+            $db->whereCause('user_id', '<', $userId);
+        }
+
+        return $db->order('user_id')
+            ->limit($num)
+            ->get();
     }
 
     /**

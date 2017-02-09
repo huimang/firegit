@@ -1,0 +1,34 @@
+<h1>编辑用户</h1>
+
+<form method="post" action="/gl/user/_update" data-hook="ajax" data-success="编辑成功">
+    <input type="hidden" value="<?= $user['user_id'] ?>" name="user_id"/>
+    <div class="input-field">
+        <input name="username" type="text" class="validate" value="<?= $user['username'] ?>" required autofocus>
+        <label>帐号</label>
+    </div>
+    <div class="input-field">
+        <input name="email" type="email" class="validate" required value="<?= $user['email'] ?>">
+        <label>邮箱</label>
+    </div>
+    <div class="input-field">
+        <input name="realname" type="text" class="validate" required value="<?= $user['realname'] ?>" minlength="2"
+               maxlength="20">
+        <label>真实姓名</label>
+    </div>
+    <div>
+        <label>角色</label>
+        <?php foreach($roles as $roleId => $roleName):?>
+        <p>
+            <input class="with-gap" type="radio" value="<?=$roleId?>" name="role" id="role<?=$roleId?>"<?=$user['role'] == $roleId ? ' checked':''?>>
+            <label for="role<?=$roleId?>"><?=$roleName?></label>
+        </p>
+        <?php endforeach?>
+    </div>
+    <div class="input-field">
+        <input name="phone" type="number" class="validate" value="<?= $user['phone'] ? $user['phone'] : '' ?>" minlength="11" maxlength="11">
+        <label>电话</label>
+    </div>
+    <button class="btn waves-effect waves-light" type="submit" name="action">
+        更新
+    </button>
+</form>
