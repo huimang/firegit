@@ -496,7 +496,6 @@ class Repository
                 foreach ($branches as $key => $branch) {
                     if ($branch['hash'] == $commit['hash']) {
                         $branches[$key] = array_merge($branch, $commit);
-                        break;
                     }
                 }
             }

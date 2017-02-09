@@ -5,6 +5,7 @@
         <thead>
         <tr>
             <th width="15%">分支名</th>
+            <th width="10%">最新提交</th>
             <th>提交信息</th>
             <th width="12%">提交日期</th>
             <th width="8%">作者</th>
@@ -18,6 +19,7 @@
                         <?= $branch['name'] ?>
                     </a>
                 </td>
+                <td><a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commit/<?=$branch['hash']?>/"><?= substr($branch['hash'], 0, 8)?><a/></td>
                 <td><?= $branch['msg'] ?></td>
                 <td><?= date('Y/m/d H:i', $branch['time']) ?></td>
                 <td><?= $branch['author'] ?></td>
