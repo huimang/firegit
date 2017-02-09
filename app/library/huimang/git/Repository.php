@@ -277,7 +277,7 @@ class Repository
     {
         $commit = self::getCommit($path, $hash, 0);
         // 检查是否为第1个commit
-        if (!isset($commit['parent'])) {
+        if (empty($commit['parent'])) {
             $cmd = new Command('git ls-tree %s %s', self::normalBranch($hash), $file);
             if (!$cmd->execute() && !empty($cmd->outputs)) {
                 $line = $cmd->outputs[0];
@@ -291,6 +291,7 @@ class Repository
                     $blocks[] = [
                         'from' => 0,
                         'to' => $number,
+                        'line' => $line,
                         'type' => 'insect',
                     ];
                 }
