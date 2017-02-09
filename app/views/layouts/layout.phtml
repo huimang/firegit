@@ -118,7 +118,18 @@
             return false;
         });
     })();
-
+    $('select').each(function() {
+        var self = $(this);
+        var url = self.data('url');
+        if (url) {
+            self.on('change', function() {
+               if (this.value) {
+                   location.href = url.replace('{value}', this.value);
+               }
+            });
+        }
+        self.material_select();
+    });
 </script>
 </body>
 </body>

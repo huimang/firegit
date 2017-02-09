@@ -70,10 +70,12 @@ class RepoController extends BaseController
         $files = \huimang\git\Repository::lsTree($this->repoPath, $this->branch);
 
         $this->packFiles($files['file']);
-
+        $branches = Repository::lsBranches($this->repoPath);
+        $this->_view->branches = $branches;
         $this->_view->files = $files;
         $this->_view->repoNav = 'code';
         $this->_view->showSummary = true;
+        $this->_view->branchNav = 'tree';
     }
 
     /**
@@ -83,15 +85,19 @@ class RepoController extends BaseController
     {
         $files = \huimang\git\Repository::lsTree($this->repoPath, $this->branch, $this->file);
 
+
         $this->packFiles($files['file']);
         $this->_view->files = $files;
         $ppath = dirname($this->file);
         if ($ppath != '/' && $ppath != '') {
             $ppath .= '/';
         }
+        $branches = Repository::lsBranches($this->repoPath);
+        $this->_view->branches = $branches;
         $this->_view->ppath = $ppath;
         $this->_view->dir = $this->file;
         $this->_view->repoNav = 'code';
+        $this->_view->branchNav = 'tree';
     }
 
     private $fileCsses = [
@@ -179,6 +185,10 @@ class RepoController extends BaseController
         $datas = Repository::lsCommits($this->repoPath, $this->branch, 60);
         $this->_view->commits = $datas['commits'];
         $this->_view->next = $datas['next'];
+
+        $branches = Repository::lsBranches($this->repoPath);
+        $this->_view->branches = $branches;
+        $this->_view->branchNav = 'commits';
     }
 
     /**
