@@ -32,6 +32,9 @@ class ErrorController extends \Yaf\Controller_Abstract
                     $msg = '您没有权利操作该页面。';
                     header('HTTP/1.1 401 Unauthorized');
                     break;
+                case 'mustRequestByPost':
+                    $msg = '必须用POST方法请求该页面。';
+                    break;
                 default:
 //                    header('HTTP/1.1 503 Internal Server Error');
                     break;

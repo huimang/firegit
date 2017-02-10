@@ -15,6 +15,11 @@ class RepoController extends BaseController
     private $branch;
     private $file;
 
+    private $repoRoles = [
+        1 => '普通',
+        2 => '管理员',
+    ];
+
     /**
      * 载入repo信息
      */
@@ -22,6 +27,9 @@ class RepoController extends BaseController
     {
         parent::init();
 
+        if ($this->_request->method != 'GET') {
+            return;
+        }
         $repo = new RepoModel();
         $repo = $repo->getRepo($_GET['repo_id']);
         if (!$repo) {
@@ -223,5 +231,68 @@ class RepoController extends BaseController
     {
         $tags = Repository::lsTags($this->repoPath);
         $this->_view->tags = $tags;
+    }
+
+    public function memberAction()
+    {
+        $repo = new RepoModel();
+        $users = $repo->getRepoUsers($this->repo['repo_id']);
+        $this->_view->users = $users;
+        $userIds = array_column($users, 'user_id');
+
+        $userApi = new UserModel();
+        $allUsers = $userApi->getAllUsers(1);
+        foreach ($allUsers as $key => $user) {
+            if (in_array($user['user_id'], $userIds)) {
+                unset($allUsers[$key]);
+            }
+        }
+        $this->_view->repoRoles = $this->repoRoles;
+        $this->_view->allUsers = $allUsers;
+    }
+
+    public function _addMemberAction()
+    {
+        $repoId = intval($_POST['repo_id']);
+        if (!$repoId) {
+            throw \huimang\Exception::newEx('notfound');
+        }
+        $users = $_POST['user'];
+        if (!$users || !is_array($users)) {
+            return;
+        }
+        $roles = $_POST['role'];
+
+        $model = new RepoModel();
+
+        foreach ($users as $userId) {
+            if (isset($roles[$userId])) {
+                $model->setRepoUser($repoId, $userId, $roles[$userId]);
+            }
+        }
+    }
+
+    public function _delMemberAction()
+    {
+        $repoId = $_GET['repo_id'];
+        $userId = $_GET['user_id'];
+        $model = new RepoModel();
+        $model->delRepoUser($repoId, $userId);
+    }
+
+    public function _setAdminAction()
+    {
+        $repoId = $_GET['repo_id'];
+        $userId = $_GET['user_id'];
+        $model = new RepoModel();
+        $model->setRepoUser($repoId, $userId, 2);
+    }
+
+    public function _cancelAdminAction()
+    {
+        $repoId = $_GET['repo_id'];
+        $userId = $_GET['user_id'];
+        $model = new RepoModel();
+        $model->setRepoUser($repoId, $userId, 1);
     }
 }

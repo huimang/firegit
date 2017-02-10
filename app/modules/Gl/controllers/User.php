@@ -29,7 +29,7 @@ class UserController extends BaseController
     {
         $from = intval($_GET['from'] ?? 0);
         $model = new UserModel();
-        $users = $model->getUsers(20, $from);
+        $users = $model->pagedGetUsers(20, $from);
         $this->_view->users = $users;
         $this->_view->roles = $this->roles;
         $this->_view->cuser = $this->user;

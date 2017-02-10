@@ -4,6 +4,7 @@
     <li class="tab"><a target="_self" <?=$repoNav == 'commits' ? ' class="active"' : ''?>href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commits/">提交</a></li>
     <li class="tab"><a target="_self" <?=$repoNav == 'branches' ? ' class="active"' : ''?>href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/branches/">分支</a></li>
     <li class="tab"><a target="_self" <?=$repoNav == 'tags' ? ' class="active"' : ''?>href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/tags/">标签</a></li>
+    <li class="tab"><a target="_self" <?=$repoNav == 'member' ? ' class="active"' : ''?>href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/member/">成员</a></li>
 </ul>
 <?php if(!empty($showSummary)):?>
     <p><?=$repo['summary']?></p>

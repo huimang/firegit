@@ -1,0 +1,65 @@
+<?php include 'include-tabs.phtml' ?>
+<div>
+    <a class="btn-floating right modal-trigger" title="添加" href="#addMember"><i class="fa fa-plus"></i> 添加</a>
+</div>
+<table class="card-panel striped hover">
+    <thead>
+    <tr>
+        <th width="15%">帐号</th>
+        <th width="20%">邮箱</th>
+        <th width="15%">真实姓名</th>
+        <th width="15%">角色</th>
+        <td>操作</td>
+    </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($users as $user): ?>
+        <tr>
+            <td><?= $user['username'] ?></td>
+            <td><?= $user['email'] ?></td>
+            <td><?= $user['realname'] ?></td>
+            <td><?= $repoRoles[$user['repo_role']] ?></td>
+            <td>
+                <?php if ($user['repo_role'] == 1): ?>
+                    <a href="/repo/_setAdmin/?repo_id=<?= $repo['repo_id'] ?>&user_id=<?= $user['user_id'] ?>">设为管理员</a>
+                <?php else: ?>
+                    <a href="/repo/_cancelAdmin/?repo_id=<?= $repo['repo_id'] ?>&user_id=<?= $user['user_id'] ?>">取消管理员</a>
+                <?php endif ?>
+                &nbsp;&nbsp;
+                <a href="/repo/_delMember?repo_id=<?= $repo['repo_id'] ?>&user_id=<?= $user['user_id'] ?>" data-confirm="你确定要删除TA吗？"><i
+                            class="fa fa-trash"></i> 删除</a>
+            </td>
+        </tr>
+    <?php endforeach ?>
+    </tbody>
+</table>
+<!-- Modal Structure -->
+<form id="addMember" class="modal modal-fixed-footer" method="post" data-hook="ajax" action="/repo/_addMember">
+    <input type="hidden" name="repo_id" value="<?= $repo['repo_id'] ?>"/>
+    <div class="modal-content">
+        <h4>添加成员</h4>
+        <table class="table striped">
+            <?php foreach ($allUsers as $user): ?>
+                <tr>
+                    <td width="25%">
+                        <input id="user<?= $user['user_id'] ?>" type="checkbox" name="user[]"
+                               value="<?= $user['user_id'] ?>"/>
+                        <label for="user<?= $user['user_id'] ?>"><?= $user['realname'] ?></label>
+                    </td>
+                    <?php foreach ($repoRoles as $roleId => $roleName): ?>
+                        <td<?= $roleId == 1 ? ' width="20%"' : '' ?>>
+                            <input id="role<?= $user['user_id'] ?>-<?= $roleId ?>" type="radio"
+                                   name="role[<?= $user['user_id'] ?>]"
+                                   value="<?=$roleId?>" class="with-gap" <?= $roleId == 1 ? ' checked' : '' ?>>
+                            <label for="role<?= $user['user_id'] ?>-<?= $roleId ?>"><?= $roleName ?></label>
+                        </td>
+                    <?php endforeach ?>
+                </tr>
+            <?php endforeach ?>
+        </table>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="modal-action modal-close waves-effect waves-green btn">保存</button>
+    </div>
+</form>
+<script>$('#addMember').modal();</script>

@@ -267,4 +267,53 @@ SHELL;
         }
         return $userRepos;
     }
+
+    /**
+     * 获取GIT库的用户
+     * @param int $repoId
+     * @return array
+     * [
+     *  [
+     *    'user_id',
+     *    'username',
+     *    'email',
+     *    'realname',
+     *    'role', // 用户角色
+     *    'repo_role', // GIT库角色
+     *  ]
+     * ]
+     */
+    public function getRepoUsers(int $repoId)
+    {
+        $db = Db::get();
+        $repoUsers = $db->table('repo_user')
+            ->field('user_id', 'role')
+            ->where(['repo_id' => $repoId])
+            ->order('create_time')
+            ->get();
+        if (!$repoUsers) {
+            return [];
+        }
+        $userIds = array_column($repoUsers, 'user_id');
+        $repoUsers = array_column($repoUsers, 'role', 'user_id');
+        $userApi = new UserModel();
+        $users = $userApi->getUsers($userIds);
+        foreach ($users as &$user) {
+            $user['repo_role'] = $repoUsers[$user['user_id']];
+        }
+        return $users;
+    }
+
+    /**
+     * 删除仓库用户
+     * @param int $repoId
+     * @param int $userId
+     */
+    public function delRepoUser(int $repoId, int $userId)
+    {
+        Db::get()
+            ->table('repo_user')
+            ->where(['repo_id' => $repoId, 'user_id' => $userId])
+            ->delete();
+    }
 }

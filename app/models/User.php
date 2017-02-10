@@ -161,12 +161,51 @@ class UserModel
     }
 
     /**
+     * 批量获取用户
+     * @param $userIds
+     * @return array
+     */
+    public function getUsers($userIds)
+    {
+        return Db::get()
+            ->table('user')
+            ->field('user_id', 'username', 'email', 'realname', 'role', 'status')
+            ->whereCause('status', '!=', self::STATUS_DELETE)
+            ->in('user_id', $userIds)
+            ->get();
+    }
+
+    /**
+     * 获取所有用户
+     * @param int $role
+     * @return array
+     * [
+     *  [
+     *   'user_id',
+     *   'realname'
+     *  ]
+     * ]
+     */
+    public function getAllUsers(int $role = 0)
+    {
+        $db = Db::get()
+            ->table('user')
+            ->field('user_id', 'realname')
+            ->whereCause('status', '!=', self::STATUS_DELETE);
+        if ($role > 0) {
+            $db->where(['role' => $role]);
+        }
+        return $db->get();
+    }
+
+
+    /**
      * 分页获取用户
      * @param $num
      * @param int $userId
      * @return array
      */
-    public function getUsers($num, int $userId = 0)
+    public function pagedGetUsers($num, int $userId = 0)
     {
         $db = Db::get()
             ->table('user')
