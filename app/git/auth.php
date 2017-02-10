@@ -52,9 +52,14 @@ if ($userId < 0) {
     header('HTTP/1.1 401 Unauthorized');
     exit();
 }
+$user = $model->getUser($userId);
+if (!$user || $user['status'] == 0) {
+    header('HTTP/1.1 401 Unauthorized');
+    exit();
+}
 
 // 检查用户是否可以访问该项目
-if (!$repoModel->isRepoUser($userId, $repoId)) {
+if ($user['role'] == 1 && !$repoModel->isRepoUser($userId, $repoId)) {
     header('HTTP/1.1 401 Unauthorized');
     exit();
 }
