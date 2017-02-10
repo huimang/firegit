@@ -3,7 +3,7 @@
 <form method="post" action="/gl/user/_update" data-hook="ajax" data-success="编辑成功">
     <input type="hidden" value="<?= $user['user_id'] ?>" name="user_id"/>
     <div class="input-field">
-        <input name="username" type="text" class="validate" value="<?= $user['username'] ?>" required autofocus>
+        <input name="username" type="text" class="validate" value="<?= $user['username'] ?>" required autofocus pattern="^[a-z][a-zA-Z0-9\.\_\-]{5,19}$"/>
         <label>帐号</label>
     </div>
     <div class="input-field">
@@ -31,4 +31,5 @@
     <button class="btn waves-effect waves-light" type="submit" name="action">
         更新
     </button>
+    &nbsp;&nbsp;<a href="/gl/user/">返回</a>
 </form>

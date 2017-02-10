@@ -13,7 +13,7 @@ use huimang\db\Db;
 class UserModel
 {
     const SALT_MASK = 'sdfw3@23145Ds&*';
-    const USERNAME_RULE = '#^[a-z][a-zA-Z0-9\.\_\-\@\*\$]{5,19}$#';
+    const USERNAME_RULE = '#^[a-z][a-zA-Z0-9\.\_\-]{5,19}$#';
     // 密码禁止的规则
     const PWD_RULE = '#^\w{6,12}$#';
 

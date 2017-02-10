@@ -20,6 +20,9 @@ class UserController extends BaseController
         if ($this->user['role'] != 2) {
             throw \huimang\Exception::newEx('power');
         }
+        if ($this->_view) {
+            $this->_view->glNav = 'user';
+        }
     }
 
     public function indexAction()
@@ -34,7 +37,7 @@ class UserController extends BaseController
 
     public function addAction()
     {
-
+        $this->_view->roles = $this->roles;
     }
 
     public function updateAction()
@@ -48,6 +51,16 @@ class UserController extends BaseController
 
         $this->_view->roles = $this->roles;
         $this->_view->user = $user;
+    }
+
+    public function _addAction()
+    {
+        $model = new UserModel();
+        $userId = $model->addUser($_POST['username'], $_POST['newpwd'], $_POST['email'], $_POST['realname'], [
+            'role' => intval($_POST['role']),
+            'phone' => intval($_POST['phone']),
+        ]);
+        $this->setPostDatas(['user_id' => $userId]);
     }
 
     public function _updateAction()
