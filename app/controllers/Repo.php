@@ -286,6 +286,18 @@ class RepoController extends BaseController
         $this->_view->users = $users;
         $userIds = array_column($users, 'user_id');
 
+        $isAdmin = false;
+        if ($this->user['role'] == 2) {
+            $isAdmin = true;
+        } else {
+            foreach ($users as $user) {
+                if ($user['user_id'] == $this->userId && $user['repo_role'] == 2) {
+                    $isAdmin = true;
+                }
+            }
+        }
+        $this->_view->isAdmin = $isAdmin;
+
         $userApi = new UserModel();
         $allUsers = $userApi->getAllUsers(1);
         foreach ($allUsers as $key => $user) {
@@ -295,6 +307,7 @@ class RepoController extends BaseController
         }
         $this->_view->repoRoles = $this->repoRoles;
         $this->_view->allUsers = $allUsers;
+        $this->_view->cuser = $this->user;
         $this->_layout->title .= '>成员列表';
     }
 
@@ -304,6 +317,8 @@ class RepoController extends BaseController
         if (!$repoId) {
             throw \huimang\Exception::newEx('notfound');
         }
+        $this->canEditRepo($repoId);
+
         $users = $_POST['user'];
         if (!$users || !is_array($users)) {
             return;
@@ -322,6 +337,8 @@ class RepoController extends BaseController
     public function _delMemberAction()
     {
         $repoId = $_GET['repo_id'];
+        $this->canEditRepo($repoId);
+
         $userId = $_GET['user_id'];
         $model = new RepoModel();
         $model->delRepoUser($repoId, $userId);
@@ -330,6 +347,7 @@ class RepoController extends BaseController
     public function _setAdminAction()
     {
         $repoId = $_GET['repo_id'];
+        $this->canEditRepo($repoId);
         $userId = $_GET['user_id'];
         $model = new RepoModel();
         $model->setRepoUser($repoId, $userId, 2);
@@ -338,8 +356,32 @@ class RepoController extends BaseController
     public function _cancelAdminAction()
     {
         $repoId = $_GET['repo_id'];
+        $this->canEditRepo($repoId);
         $userId = $_GET['user_id'];
         $model = new RepoModel();
         $model->setRepoUser($repoId, $userId, 1);
+    }
+
+    private function canEditRepo($repoId)
+    {
+        $model = new RepoModel();
+        // 检查是否有权限修改成员
+        if ($this->user['role'] != 2) {
+            $repoUsers = $model->getRepoUsers($repoId);
+            $isAdmin = false;
+            foreach ($repoUsers as $ruser) {
+                if ($ruser['user_id'] == $this->user['user_id']) {
+                    if ($ruser['repo_role'] == 2) {
+                        $isAdmin = true;
+                        break;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            if (!$isAdmin) {
+                throw \huimang\Exception::newEx('power');
+            }
+        }
     }
 }

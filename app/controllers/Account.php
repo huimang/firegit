@@ -16,7 +16,7 @@ class AccountController extends BaseController
      */
     public function loginAction()
     {
-
+        $this->_layout->mainNav = '';
     }
 
     /**

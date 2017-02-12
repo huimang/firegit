@@ -45,6 +45,11 @@ abstract class BaseController extends \Yaf\Controller_Abstract
             $this->_page = $page;
         }
 
+        $this->_layout = \Yaf\Registry::get('layout');
+        if ($this->_layout) {
+            $this->_layout->mainNav = 'home';
+        }
+
         if (!$this->needLogin) {
             return;
         }
@@ -78,11 +83,9 @@ abstract class BaseController extends \Yaf\Controller_Abstract
         ];
         $this->userId = $arr[0];
 
-        $this->_layout = \Yaf\Registry::get('layout');
         if ($this->_layout) {
             $this->_layout->user = $this->user;
             $this->_layout->userNav = '';
-            $this->_layout->mainNav = 'home';
         }
     }
 
