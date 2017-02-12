@@ -4,7 +4,7 @@
  *
  * @author: ronnie
  * @since: 2017/1/13 14:37
- * @copyright: 2017@hunbasha.com
+ * @copyright: 2017@firegit.com
  * @filesource: Index.php
  */
 class IndexController extends BaseController
