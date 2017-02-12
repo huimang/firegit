@@ -59,6 +59,11 @@ class Bootstrap extends Bootstrap_Abstract
         switch($_SERVER['REQUEST_METHOD']) {
             case 'GET':
                 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
+                    // 如果指定返回json，则启用PostPlugin
+                    if ($_GET['_of'] == 'json') {
+                        $post = new PostPlugin();
+                        $dispatcher->registerPlugin($post);
+                    }
                     break;
                 }
                 $withoutLayouts = [];

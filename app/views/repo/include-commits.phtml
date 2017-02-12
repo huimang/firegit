@@ -1,0 +1,12 @@
+<?php foreach ($commits as $commit): ?>
+    <tr>
+        <td>
+            <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commit/<?= $commit['hash'] ?>/">
+                <?= substr($commit['hash'], 0, 8) ?>
+            </a>
+        </td>
+        <td><?= $commit['msg'] ?></td>
+        <td><?= date('Y/m/d H:i', $commit['time']) ?></td>
+        <td><?= $commit['author'] ?></td>
+    </tr>
+<?php endforeach ?>

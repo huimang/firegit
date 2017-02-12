@@ -1,15 +1,15 @@
-<?php include 'component-nav.phtml'?>
-<div>
-    <a href="/my/repo/add/" class="btn-floating right"><i class="fa fa-plus"></i> 添加仓库</a>
-    <h2>我拥有的项目</h2>
-</div>
+<?php include 'include-nav.phtml' ?>
+    <div>
+        <a href="/my/repo/add/" class="btn-floating right"><i class="fa fa-plus"></i> 添加仓库</a>
+        <h2>我拥有的项目</h2>
+    </div>
 <?php if ($repos): ?>
     <table class="striped bordered card-panel">
         <thead>
         <tr>
-            <th width="15%">ID</th>
-            <th>库名</th>
-            <!--            <th width="15%">角色</th>-->
+            <th width="6%">ID</th>
+            <th class="50%">库名</th>
+            <th width="10%">角色</th>
             <th width="15%">加入日期</th>
             <th>操作</th>
         </tr>

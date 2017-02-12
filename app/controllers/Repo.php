@@ -70,9 +70,14 @@ class RepoController extends BaseController
         $this->_view->repo = $repo;
         $this->_view->branch = $this->branch;
         $this->_view->repoNav = $this->_request->action;
+        $this->_view->gitUrl = sprintf(
+            'http://%s/%s/%s.git',
+            $_SERVER['HTTP_HOST'],
+            $this->repo['group'],
+            $this->repo['name']);
 
         if ($this->_layout) {
-            $this->_layout->title = $repo['group'].'/'.$repo['name'];
+            $this->_layout->title = $repo['group'] . '/' . $repo['name'];
         }
     }
 
@@ -89,11 +94,7 @@ class RepoController extends BaseController
         } else {
             $user = (new UserModel())->getUser($this->userId);
             $this->_view->cuser = $user;
-            $this->_view->gitUrl = sprintf(
-                'http://%s/%s/%s.git',
-                $_SERVER['HTTP_HOST'],
-                $this->repo['group'],
-                $this->repo['name']);
+
         }
         $this->_view->repoNav = 'code';
         $this->_view->showSummary = true;
@@ -122,7 +123,7 @@ class RepoController extends BaseController
         $this->_view->repoNav = 'code';
         $this->_view->branchNav = 'tree';
 
-        $this->_layout->title .= '>分支:'.$this->branch.'>目录:'.$this->file;
+        $this->_layout->title .= '>分支:' . $this->branch . '>目录:' . $this->file;
     }
 
     private $fileCsses = [
@@ -200,7 +201,7 @@ class RepoController extends BaseController
         $this->_view->language = $language;
         $this->_view->repoNav = 'code';
 
-        $this->_layout->title .= '>分支:'.$this->branch. '>文件:'.$this->file;
+        $this->_layout->title .= '>分支:' . $this->branch . '>文件:' . $this->file;
     }
 
 
@@ -209,7 +210,7 @@ class RepoController extends BaseController
      */
     public function commitsAction()
     {
-        $datas = Repository::lsCommits($this->repoPath, $this->branch, 60);
+        $datas = Repository::lsCommits($this->repoPath, $this->branch, $this->_size);
         $this->_view->commits = $datas['commits'];
         $this->_view->next = $datas['next'];
 
@@ -217,7 +218,28 @@ class RepoController extends BaseController
         $this->_view->branches = $branches;
         $this->_view->branchNav = 'commits';
 
-        $this->_layout->title .= '>分支:'.$this->branch. ':提交列表';
+        if ($this->_layout) {
+            $this->_layout->title .= '>分支:' . $this->branch . ':提交列表';
+        }
+    }
+
+    public function ncommitsAction()
+    {
+        $datas = Repository::lsCommits($this->repoPath, $this->branch, $this->_size);
+
+        $html = $this->_view->render(
+            'repo/include-commits.phtml',
+            [
+                'commits' => $datas['commits']
+            ]);
+
+
+        $this->disableView();
+
+        $this->setPostDatas([
+            'html' => $html,
+            'next' => $datas['next']
+        ]);
     }
 
     /**
@@ -233,7 +255,7 @@ class RepoController extends BaseController
         $this->_view->branches = $branches;
         $this->_view->repoNav = 'commits';
 
-        $this->_layout->title .= '>提交:'.$this->branch;
+        $this->_layout->title .= '>提交:' . $this->branch;
     }
 
     public function diffAction()

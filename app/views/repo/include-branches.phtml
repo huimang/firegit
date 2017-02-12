@@ -1,8 +1,8 @@
 <?php if (!empty($branches) && count($branches) > 1):?>
-<div class="row">
-    <select class="col s2" data-url="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/<?= $branchNav ?>/{value}/">
+<div style="width:20rem;">
+    <select data-url="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/<?= $branchNav ?>/{value}/">
         <?php foreach ($branches as $_branch): ?>
-            <option value="<?= $_branch['name'] ?>" <?= $_branch['name'] == $branch ? ' selected' : '' ?>><?= $_branch['name'] ?></option>
+            <option value="<?= $_branch['name'] ?>" <?= $_branch['name'] == $branch ? ' selected' : '' ?>>分支：<?= $_branch['name'] ?></option>
         <?php endforeach ?>
     </select>
 </div>

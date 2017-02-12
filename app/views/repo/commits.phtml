@@ -1,5 +1,5 @@
 <?php include 'include-tabs.phtml' ?>
-<?php include 'include-branches.phtml'?>
+<?php include 'include-branches.phtml' ?>
 
 <?php if ($commits): ?>
     <table class="striped bordered card-panel">
@@ -11,19 +11,41 @@
             <th width="8%">作者</th>
         </tr>
         </thead>
-        <?php foreach ($commits as $commit): ?>
-            <tr>
-                <td>
-                    <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/commit/<?= $commit['hash'] ?>/">
-                        <?= substr($commit['hash'], 0, 8) ?>
-                    </a>
-                </td>
-                <td><?= $commit['msg'] ?></td>
-                <td><?= date('Y/m/d H:i', $commit['time']) ?></td>
-                <td><?= $commit['author'] ?></td>
-            </tr>
-        <?php endforeach ?>
+        <tbody>
+        <?php include 'include-commits.phtml' ?>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="4" class="center-align">
+                <a class="btn" data-hook="next"
+                   data-url="/repo/ncommits/{next}/?_of=json&repo_id=<?= $repo['repo_id'] ?>" data-next="<?= $next ?>">下一页</a>
+            </td>
+        </tr>
+        </tfoot>
     </table>
+    <script>
+        $('table tfoot a[data-hook="next"]').each(function () {
+            var self = $(this), tfoot = self.parents('tfoot');
+            self.on('click', function () {
+                if (self.data('next')) {
+                    var url = self.data('url').replace('{next}', self.data('next'));
+                    $.ajax({
+                        url: url,
+                        success: function (ret) {
+                            tfoot.prev('tbody').append(ret.data.html);
+                            if (ret.data.next) {
+                                self.data('next', ret.data.next);
+                            } else {
+                                tfoot.hide();
+                                self.data('next', '');
+                            }
+                        }
+                    })
+                }
+                return false;
+            });
+        });
+    </script>
 <?php else: ?>
     <div class="card-panel">还没有任何提交</div>
 <?php endif ?>
