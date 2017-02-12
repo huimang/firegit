@@ -24,7 +24,7 @@ trait GroupTrait
      * @throws Exception repo.groupNameProtected 该分组名被保护
      * @throws Exception repo.groupNameUsed 该分组名已经使用过
      */
-    public function addGroup(string $name, int $userId, string $summary)
+    public function addGroup(string $name, int $userId, string $summary = '')
     {
         $this->checkGroupName($name);
 

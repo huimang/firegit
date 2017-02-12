@@ -1,5 +1,22 @@
-<?php include 'include-tabs.phtml'?>
-<?php include 'include-branches.phtml'?>
+<?php include 'include-tabs.phtml' ?>
+<?php include 'include-branches.phtml' ?>
 
-<?php include 'include-files.phtml' ?>
+<?php if (isset($files)): ?>
+    <?php include 'include-files.phtml' ?>
+<?php else: ?>
+    <div class="card-panel">
+        还没有提交任何代码，首次提交可以按如下方法：
+        <pre><code class="bash">git clone <?= $gitUrl ?>
 
+cd <?=$repo['name']?>
+
+echo 'hello' > README.MD
+git add .
+git config user.name <?=$cuser['username']?>
+
+git config user.email <?=$cuser['email']?>
+
+git commit -m 'first import'
+git push origin master</code></pre>
+    </div>
+<?php endif ?>

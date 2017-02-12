@@ -201,23 +201,32 @@ class UserModel
 
     /**
      * 分页获取用户
-     * @param $num
-     * @param int $userId
+     * @param int $page 从0开始计算
+     * @param int $num
      * @return array
      */
-    public function pagedGetUsers($num, int $userId = 0)
+    public function pagedGetUsers(int $page, int $num)
     {
-        $db = Db::get()
-            ->table('user')
-            ->field('user_id', 'username', 'email', 'realname', 'role', 'status', 'create_time')
-            ->whereCause('status', '!=', self::STATUS_DELETE);
-        if ($userId > 0) {
-            $db->whereCause('user_id', '<', $userId);
+        $db = Db::get();
+        $count = $db->table('user')
+            ->setReset(false)
+            ->whereCause('status', '!=', self::STATUS_DELETE)
+            ->getCount();
+        if ($count > 0 && ceil($count / $num) > $page) {
+            $rows = $db
+                ->field('user_id', 'username', 'email', 'realname', 'role', 'status', 'create_time')
+                ->order('user_id')
+                ->limit($num, $page * $num)
+                ->get();
+            return [
+                'total' => $count,
+                'list' => $rows,
+            ];
         }
-
-        return $db->order('user_id')
-            ->limit($num)
-            ->get();
+        return [
+            'total' => $count,
+            'list' => [],
+        ];
     }
 
     /**

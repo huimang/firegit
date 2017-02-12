@@ -1,0 +1,43 @@
+<?php include 'component-nav.phtml'?>
+<div>
+    <a href="/my/repo/add/" class="btn-floating right"><i class="fa fa-plus"></i> 添加仓库</a>
+    <h2>我拥有的项目</h2>
+</div>
+<?php if ($repos): ?>
+    <table class="striped bordered card-panel">
+        <thead>
+        <tr>
+            <th width="15%">ID</th>
+            <th>库名</th>
+            <!--            <th width="15%">角色</th>-->
+            <th width="15%">加入日期</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($repos as $repo): ?>
+            <tr>
+                <td><?= $repo['repo_id'] ?></td>
+                <td>
+                    <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/">
+                        <?= $repo['group'] ?>/<?= $repo['name'] ?>
+                    </a>
+                </td>
+                <td><?= $repo['role_name'] ?></td>
+                <td><?= date('Y/m/d H:i', $repo['create_time']) ?></td>
+                <td>
+                    <?php if ($repo['role'] == 2): ?>
+                        <a href="/my/repo/update/?repo_id=<?= $repo['repo_id'] ?>"><i class="fa fa-edit"></i> 编辑</a>
+                        &nbsp;&nbsp;
+                        <a href="/my/repo/_delete?repo_id=<?= $repo['repo_id'] ?>"><i class="fa fa-trash"></i> 删除</a>
+                    <?php endif ?>
+                </td>
+            </tr>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+<?php else: ?>
+    <div class="card-panel">
+        还没有过项目
+    </div>
+<?php endif ?>

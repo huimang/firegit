@@ -1,4 +1,4 @@
-hljs.initHighlightingOnLoad();
+('hljs' in window) && hljs.initHighlightingOnLoad();
 
 (function () {
     var modalElem = $('<div class="modal">' +
@@ -32,8 +32,18 @@ hljs.initHighlightingOnLoad();
 
     function onSuccess(elem, ret) {
         if (ret.status == 'ok') {
+            var url = elem.data('rurl') || document.URL;
+            if (url.indexOf('{') > -1) {
+                url = url.replace(/\{([^\}]+)}/g, function (search, name) {
+                    if (name in ret.data) {
+                        return ret.data[name];
+                    } else {
+                        return search;
+                    }
+                });
+            }
             onComplete = function () {
-                location.href = elem.data('rurl') || document.URL;
+                location.href = url;
             };
             modalElem.find('.modal-content h4').html('<i class="fa fa-check"></i>' + (elem.data('success') || '操作成功'));
             modalElem.find('.modal-content p').html('');
@@ -50,7 +60,8 @@ hljs.initHighlightingOnLoad();
         );
         modalElem.modal('open');
     }
-    $('a').on('click', function() {
+
+    $('a').on('click', function () {
         if (/\/\_[a-z][a-zA-Z\_\-0-9]+($|\/$|\/?\?)/.test(this.href)) {
             var link = $(this);
             var cfm = link.data('confirm');
@@ -71,11 +82,11 @@ hljs.initHighlightingOnLoad();
         }
     });
 })();
-$('select').each(function() {
+$('select').each(function () {
     var self = $(this);
     var url = self.data('url');
     if (url) {
-        self.on('change', function() {
+        self.on('change', function () {
             if (this.value) {
                 location.href = url.replace('{value}', this.value);
             }

@@ -1,6 +1,7 @@
 <?php
 use \Yaf\Response_Abstract;
 use \Yaf\Request_Abstract;
+
 /**
  *
  * @author: ronnie
@@ -26,6 +27,11 @@ class LayoutPlugin extends \Yaf\Plugin_Abstract
     public function __set($name, $value)
     {
         $this->_layoutVars[$name] = $value;
+    }
+
+    public function __get($name)
+    {
+        return $this->_layoutVars[$name] ?? null;
     }
 
     public function dispatchLoopShutDown(Request_Abstract $request, Response_Abstract $response)
@@ -64,11 +70,7 @@ class LayoutPlugin extends \Yaf\Plugin_Abstract
 
         // 如果没有指定layoutDir，则通过模块自动获取
         if (!$this->_layoutDir) {
-            if ($module == 'index') {
-                $this->_layoutDir = APPLICATION_PATH . '/app/views/layouts';
-            } else {
-                $this->_layoutDir = APPLICATION_PATH . '/app/modules/' . ucfirst($module) . '/views/layouts';
-            }
+            $this->_layoutDir = APPLICATION_PATH . '/app/views/layouts';
         }
 
         $layout = new \Yaf\View\Simple($this->_layoutDir);

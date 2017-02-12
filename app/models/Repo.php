@@ -35,21 +35,33 @@ class RepoModel
 
     /**
      * 添加GIT库
-     * @param int $groupId
+     * @param string $groupName
      * @param string $name
      * @param int $userId
      * @param string $summary
      * @return int
      * @throws Exception
      */
-    public function addRepo(int $groupId, string $name, int $userId, string $summary, array $setting = [])
+    public function addRepo(string $groupName, string $name, int $userId, string $summary, array $setting = [])
     {
         $this->checkRepoNameRule($name);
 
         // 检查库是否存在
-        $group = $this->getGroup($groupId);
+        $group = $this->getGroupByName($groupName);
         if (!$group) {
-            throw new Exception('repo.groupNotFound');
+            // 检查groupName和$userId对应的用户的名称是否一样
+            $user = (new UserModel())->getUser($userId);
+            if ($user['username'] == $groupName) {
+                $groupId = $this->addGroup($groupName, $userId);
+            } else {
+                throw new Exception('repo.groupNotFound');
+            }
+        } else {
+            // 检查用户是否可以使用该group
+            if ($group['user_id'] != $userId) {
+                throw new Exception('repo.nopower');
+            }
+            $groupId = $group['rgroup_id'];
         }
         // 检查是否存在同名的库
         $db = Db::get();
@@ -67,12 +79,12 @@ class RepoModel
         }
 
         // 开始建库
-        $path = sprintf('%s/%s/%s.git', REPO_PATH, $group['name'], $name);
+        $path = $this->getRepoPath($group['name'], $name);
         $hooks = $this->getRepoHooks();
         Repository::addRepo($path, $hooks);
 
         $body = [
-            'group' => $group['name'],
+            'group' => $groupName,
             'rgroup_id' => $groupId,
             'name' => $name,
             'status' => 1,
@@ -89,9 +101,59 @@ class RepoModel
         $db->table('repo')
             ->save($body)
             ->insert();
+        $repoId = $db->getLastInsertId();
+
+        // 将自己添加为管理员
+        $this->setRepoUser($repoId, $userId, self::REPO_ROLE_ADMIN);
 
         $this->updateAllRepos();
-        return $db->getLastInsertId();
+        return $repoId;
+    }
+
+    /**
+     * 获取GIT库地址
+     * @param string $group
+     * @param string $name
+     * @return string
+     */
+    public function getRepoPath(string $group, string $name)
+    {
+        return sprintf('%s/%s/%s.git', REPO_PATH, $group, $name);
+    }
+
+
+    /**
+     * 删除项目
+     * @param int $repoId
+     * @param int $userId
+     * @throws Exception repo.nopowerToDel 没有权利删除
+     */
+    public function delRepo(int $repoId, int $userId)
+    {
+        $repo = $this->getRepo($repoId);
+        if (!$repo) {
+            return;
+        }
+        // 检查是否为repo的创始人
+        if ($repo['user_id'] != $userId) {
+            throw new Exception('repo.nopowerToDel');
+        }
+
+        // 从数据库标记删除
+        $db = Db::get();
+        $db->table('repo')
+            ->where(['repo_id' => $repoId])
+            ->save(['status' => -1])
+            ->update();
+
+        // 删除用户关系
+        $db->table('repo_user')
+            ->where(['repo_id' => $repoId])
+            ->delete();
+
+        // 获取repo的地址
+        $path = $this->getRepoPath($repo['group'], $repo['name']);
+        system('rm -rf '.$path);
     }
 
     /**
@@ -105,8 +167,8 @@ class RepoModel
         $preReceive = <<<SHELL
 #! /bin/env php
 <?php
-require '{$autoloadPath}';
-require '{$hookPath}PreReceiveHook.php';
+require "{$autoloadPath}";
+require "{$hookPath}PreReceiveHook.php";
 \$hook = new PreReceiveHook(dirname(__DIR__));
 if (\$hook->execute() === false) {
     exit(1);
@@ -115,8 +177,8 @@ SHELL;
         $postReceive = <<<SHELL
 #! /bin/env php
 <?php
-require {$autoloadPath};
-require {$hookPath}PostReceiveHook.php;
+require "{$autoloadPath}";
+require "{$hookPath}PostReceiveHook.php";
 \$hook = new PostReceiveHook(dirname(__DIR__));
 if (\$hook->execute() === false) {
     exit(1);
@@ -176,6 +238,7 @@ SHELL;
      */
     public function isRepoUser(int $userId, int $repoId)
     {
+        // 检查是否为超管
         return Db::get()
             ->table('repo_user')
             ->where(['user_id' => $userId, 'repo_id' => $repoId])
@@ -194,7 +257,7 @@ SHELL;
         if ($repos === null) {
             $repos = $this->updateAllRepos();
         }
-        if (!isset($repos[$group]) || !isset($repos[$name])) {
+        if (!isset($repos[$group]) || !isset($repos[$group][$name])) {
             return null;
         }
         return $repos[$group][$name];
@@ -237,22 +300,75 @@ SHELL;
         }
     }
 
-
     /**
-     * 获取用户的GIT库
+     * 获取用户创建的GIT库
      * @param int $userId
+     * @param int $size
+     * @param int $page 如果为-1，则直接返回指定的数目的git库，而不返回总数
      * @return array
      */
-    public function getUserRepos(int $userId)
+    public function getUserCreateRepos(int $userId, int $size, int $page = -1)
     {
-        $db = Db::get();
-        $userRepos = $db
+        $db = Db::get()
+            ->table('repo')
+            ->where(['user_id' => $userId])
+            ->whereCause('status', '!=', -1)
+            ->order('repo_id');
+        if ($page < 0) {
+            return $db->limit($size)->get();
+        }
+
+        $total = $db->table('repo')
+            ->setReset(false)
+            ->getCount();
+
+        if ($total > 0 && ceil($total / $size) > $page) {
+            return [
+                'total' => $total,
+                'list' => $db->limit($size, $page * $size)->get()
+            ];
+        }
+        return [
+            'total' => $total,
+            'list' => [],
+        ];
+    }
+
+
+    /**
+     * 获取用户属于的GIT库
+     * @param int $userId
+     * @param int $size
+     * @param int $page 如果为-1，则直接返回指定的数目的git库，而不返回总数
+     * @return array
+     */
+    public function getUserBeloneRepos(int $userId, int $size, int $page = -1)
+    {
+
+        $db = Db::get()
             ->table('repo_user')
             ->where(['user_id' => $userId])
-            ->order('create_time')
-            ->get();
-        if (!$userRepos) {
-            return [];
+            ->order('create_time');
+        $total = 0;
+        $userRepos = [];
+        if ($page < 0) {
+            $userRepos = $db->limit($size)
+                ->get();
+            if (!$userRepos) {
+                return [];
+            }
+        } else {
+            $total = $db->setReset(false)->getCount();
+            if ($total && ceil($total / $size) <= $page) {
+                $userRepos = $db->limit($size, $page * $size)
+                    ->get();
+            }
+            if (!$userRepos) {
+                return [
+                    'total' => $total,
+                    'list' => [],
+                ];
+            }
         }
 
         $repoIds = array_column($userRepos, 'repo_id');
@@ -264,6 +380,12 @@ SHELL;
         $repos = array_column($repos, null, 'repo_id');
         foreach ($userRepos as $key => $row) {
             $userRepos[$key] = array_merge($row, $repos[$row['repo_id']]);
+        }
+        if ($page >= 0) {
+            return [
+                'total' => $total,
+                'list' => $userRepos,
+            ];
         }
         return $userRepos;
     }

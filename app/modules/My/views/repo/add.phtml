@@ -1,0 +1,24 @@
+<?php include 'component-nav.phtml'?>
+<h2>添加仓库</h2>
+
+<form action="/my/repo/_add" data-hook="ajax" method="post" data-rurl="/{group}/{name}/" data-success="添加GIT库成功">
+    <div class="input-field">
+        <input type="text" name="group" class="validate" value="<?= $user['username'] ?>" readonly>
+        <label>分组</label>
+    </div>
+    <div class="input-field">
+        <input type="text" name="name" class="validate" required minlength="6" maxlength="20"/>
+        <label>名称</label>
+    </div>
+    <p>
+        <input id="anonymouse" type="checkbox" name="anonymouse" value="1">
+        <label for="anonymouse">允许匿名访问</label>
+    </p>
+    <div class="input-field">
+        <textarea name="desc" class="materialize-textarea"></textarea>
+        <label>简介</label>
+    </div>
+    <button type="submit" class="btn waves-effect waves-light">
+        保存
+    </button>
+</form>

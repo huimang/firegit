@@ -11,6 +11,12 @@ class IndexController extends BaseController
 {
     public function indexAction()
     {
-//        \Yaf\Dispatcher::getInstance()->disableView();
+        $this->_layout->title = '首页';
+        $rModel = new RepoModel();
+        $repos = $rModel->getUserCreateRepos($this->userId, 5);
+        $this->_view->repos = $repos;
+
+        $brepos = $rModel->getUserBeloneRepos($this->userId, 5);
+        $this->_view->brepos = $brepos;
     }
 }

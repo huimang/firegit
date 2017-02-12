@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><?=isset($layout['title']) ? $layout['title'].'@Firegit' : 'Firegit'?></title>
 
     <link rel="stylesheet" type="text/css" href="/dist/materialize/css/materialize.min.css"/>
     <link rel="stylesheet" type="text/css" href="/dist/font-awesome/css/font-awesome.min.css"/>
@@ -16,45 +17,34 @@
     <script src="/dist/vue/vue.min.js"></script>
     <script src="/dist/materialize/js/materialize.min.js"></script>
     <script src="/dist/highlightjs/highlight.pack.min.js"></script>
-    <title>Firegit</title>
 </head>
 <body>
 <header>
     <nav id="header">
         <div class="nav-wrapper">
-            <a href="/" class="brand-logo user-menu-link" data-activates="slide-out"><i class="fa fa-bars "></i> Firegit</a>
+            <a href="/" class="brand-logo user-menu-link">Firegit</a>
             <ul class="hide-on-med-and-down main-menu">
-                <li class="active"><a href="/">首页</a></li>
-                <li><a href="/repo/">GIT库</a></li>
-                <li><a href="/merge/">合并请求</a></li>
+                <li<?= $layout['mainNav'] == 'home' ? ' class="active"' : '' ?>><a href="/">首页</a></li>
+                <li<?= $layout['mainNav'] == 'repo' ? ' class="active"' : '' ?>><a href="/my/repo/">GIT库</a></li>
             </ul>
             <ul class="hide-on-med-and-down right">
                 <?php if (!empty($layout['user'])): ?>
-                    <li><a href="/account/logout/"><i class="fa fa-sign-out"></i>&nbsp;注销</a></li>
+                    <?php if ($layout['user']['role'] == 2): ?>
+                        <li<?=$layout['mainNav'] == 'gl' ? ' class="active"' : ''?>><a href="/gl/user/">管理</a></li>
+                    <?php endif ?>
+                    <li<?=$layout['mainNav'] == 'my' ? ' class="active"' : ''?>><a class="dropdown-button" data-beloworigin="true" class="#" data-activates="dropUser">帐号</a>
+                        <ul id="dropUser" class='dropdown-content'>
+                            <li<?= $layout['userNav'] == 'account' ? ' class="active"' : '' ?>>
+                                <a href="/my/account/">帐号</a></li>
+                            <li<?= $layout['userNav'] == 'password' ? ' class="active"' : '' ?>>
+                                <a href="/my/password/">密码</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/account/logout/">注销</a></li>
+                        </ul>
+                    </li>
                 <?php endif ?>
             </ul>
         </div>
-        <?php if (!empty($layout['user'])): ?>
-            <ul id="slide-out" class="side-nav">
-                <li>
-                    <div class="userView">
-                        <a href="/my/avatar/"><i class="fa fa-user"></i></a>
-                        <a href="/my/account/"><span class="name"><?= $layout['user']['username'] ?></span></a>
-                        <span class="email"><?= $layout['user']['realname'] ?></span>
-                    </div>
-                </li>
-                <li<?=$layout['userNav'] == 'account' ? ' class="active"' : ''?>><a href="/my/account/"><i class="fa fa-id-card"></i>帐号</a></li>
-                <li<?=$layout['userNav'] == 'password' ? ' class="active"' : ''?>><a href="/my/password/"><i class="fa fa-key"></i>密码</a></li>
-                <li<?=$layout['userNav'] == 'avatar' ? ' class="active"' : ''?>><a href="/my/avatar/"><i class="fa fa-user"></i>头像</a></li>
-                <li><div class="divider"></div></li>
-                <li<?=$layout['userNav'] == 'repo' ? ' class="active"' : ''?>><a href="/my/repo/">我的项目</a></li>
-                <?php if($layout['user']['role'] == 2):?>
-                    <li><div class="divider"></div></li>
-                    <li><a href="/gl/user/">用户</a></li>
-                    <li><a href="/gl/repo/">项目</a></li>
-                <?php endif?>
-            </ul>
-        <?php endif ?>
     </nav>
 
 
@@ -64,26 +54,10 @@
         <?= $content ?>
     </div>
 </main>
-<footer>
-    <?php if(isset($layout['user']) && $layout['user']['role'] == 2):?>
-    <div class="fixed-action-btn horizontal click-to-toggle">
-        <a class="btn-floating btn-large red">
-            <i class="fa fa-navicon"></i>
-        </a>
-        <ul>
-            <li><a class="btn-floating red" href="/gl/user/"><i class="fa fa-user">用户</i></a></li>
-            <li><a class="btn-floating yellow darken-1" href="/gl/repo/"><i class="fa fa-folder">代码库</i></a></li>
-<!--            <li><a class="btn-floating green"><i class="material-icons">publish</i></a></li>-->
-<!--            <li><a class="btn-floating blue"><i class="material-icons">attach_file</i></a></li>-->
-        </ul>
-    </div>
-    <?php endif?>
+<footer class="center-align">
+    Copyright are reserved &copy; <?= date('Y') ?> firegit.com<br/>
+    ICP备案号：京ICP备09041113号-4
 </footer>
-<script>
-    <?php if(!empty($layout['user'])):?>
-    $('.user-menu-link').sideNav();
-    <?php endif?>
-</script>
 <script src="/dist/firegit/js/bootstrap.js"></script>
 </body>
 </body>

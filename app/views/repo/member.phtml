@@ -20,6 +20,7 @@
             <td><?= $user['realname'] ?></td>
             <td><?= $repoRoles[$user['repo_role']] ?></td>
             <td>
+                <?php if ($user['user_id'] != $repo['user_id']):?>
                 <?php if ($user['repo_role'] == 1): ?>
                     <a href="/repo/_setAdmin/?repo_id=<?= $repo['repo_id'] ?>&user_id=<?= $user['user_id'] ?>">设为管理员</a>
                 <?php else: ?>
@@ -28,6 +29,7 @@
                 &nbsp;&nbsp;
                 <a href="/repo/_delMember?repo_id=<?= $repo['repo_id'] ?>&user_id=<?= $user['user_id'] ?>" data-confirm="你确定要删除TA吗？"><i
                             class="fa fa-trash"></i> 删除</a>
+                <?php endif?>
             </td>
         </tr>
     <?php endforeach ?>

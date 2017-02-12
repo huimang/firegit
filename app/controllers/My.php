@@ -9,20 +9,27 @@
  */
 class MyController extends BaseController
 {
+    protected $roles = [
+        1 => '普通',
+        2 => '管理员',
+    ];
+
     public function init()
     {
         parent::init();
+
         $model = new UserModel();
         $user = $model->getUser($this->userId);
         $this->_view->user = $user;
         if ($this->_layout) {
-            $this->_layout->userNav = $this->_request->action;
+            $this->_view->userNav = $this->_layout->userNav = $this->_request->action;
+            $this->_layout->mainNav = 'my';
         }
     }
 
     public function accountAction()
     {
-
+        $this->_layout->title = '我的>帐号';
     }
 
     public function _accountAction()
@@ -36,23 +43,10 @@ class MyController extends BaseController
         ]);
     }
 
-    private $roles = [
-        1 => '普通',
-        2 => '管理员',
-    ];
-
-    public function repoAction()
-    {
-        $model = new RepoModel();
-        $repos = $model->getUserRepos($this->userId);
-        foreach ($repos as &$repo) {
-            $repo['role_name'] = $this->roles[$repo['role']];
-        }
-        $this->_view->repos = $repos;
-    }
 
     public function passwordAction()
     {
+        $this->_layout->title = '我的>密码';
         $this->_layout->userNav = 'password';
     }
 

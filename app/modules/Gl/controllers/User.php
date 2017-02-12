@@ -23,21 +23,28 @@ class UserController extends BaseController
         if ($this->_view) {
             $this->_view->glNav = 'user';
         }
+        if ($this->_layout) {
+            $this->_layout->mainNav = 'gl';
+        }
     }
 
     public function indexAction()
     {
-        $from = intval($_GET['from'] ?? 0);
         $model = new UserModel();
-        $users = $model->pagedGetUsers(20, $from);
-        $this->_view->users = $users;
+        $users = $model->pagedGetUsers($this->_page, $this->_size);
+        $this->_view->total = $users['total'];
+        $this->_view->users = $users['list'];
         $this->_view->roles = $this->roles;
         $this->_view->cuser = $this->user;
+
+        $this->setPagination($users['total']);
+        $this->_layout->title = '管理>用户>列表';
     }
 
     public function addAction()
     {
         $this->_view->roles = $this->roles;
+        $this->_layout->title = '管理>用户>添加';
     }
 
     public function updateAction()
@@ -51,6 +58,7 @@ class UserController extends BaseController
 
         $this->_view->roles = $this->roles;
         $this->_view->user = $user;
+        $this->_layout->title = '管理>用户>更新';
     }
 
     public function _addAction()

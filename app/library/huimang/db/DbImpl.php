@@ -77,6 +77,11 @@ class DbImpl
     private $lastInsertId;
 
     /**
+     * @var bool 是否清空
+     */
+    private $_reset = true;
+
+    /**
      * 初始化db
      * @param string $db
      * @param array $conf
@@ -153,10 +158,24 @@ class DbImpl
     }
 
     /**
+     * 设置是否清空
+     * @param $reset
+     * @return $this
+     */
+    public function setReset($reset)
+    {
+        $this->_reset = $reset;
+        return $this;
+    }
+
+    /**
      * 重置查询项
      */
     private function reset()
     {
+        if (!$this->_reset) {
+            return;
+        }
         $this->tb = null;
         $this->fields = [];
         $this->causes = [];
@@ -167,6 +186,7 @@ class DbImpl
         $this->saves = [];
         $this->datas = [];
         $this->duplicates = null;
+        $this->_reset = true;
     }
 
     /**

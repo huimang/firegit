@@ -441,8 +441,11 @@ class Repository
             $commits[] = self::handleCommits($line);
         }
         $next = false;
-        if ($commits) {
+        $commitNum = count($commits);
+        if ($commitNum == $num + 1) {
             $next = array_pop($commits)['hash'];
+        } else {
+            $next = null;
         }
         return [
             'commits' => $commits,

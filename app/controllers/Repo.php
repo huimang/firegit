@@ -70,20 +70,35 @@ class RepoController extends BaseController
         $this->_view->repo = $repo;
         $this->_view->branch = $this->branch;
         $this->_view->repoNav = $this->_request->action;
+
+        if ($this->_layout) {
+            $this->_layout->title = $repo['group'].'/'.$repo['name'];
+        }
     }
 
 
     public function indexAction()
     {
-        $files = \huimang\git\Repository::lsTree($this->repoPath, $this->branch);
-
-        $this->packFiles($files['file']);
         $branches = Repository::lsBranches($this->repoPath);
         $this->_view->branches = $branches;
-        $this->_view->files = $files;
+
+        if ($branches) {
+            $files = \huimang\git\Repository::lsTree($this->repoPath, $this->branch);
+            $this->packFiles($files['file']);
+            $this->_view->files = $files;
+        } else {
+            $user = (new UserModel())->getUser($this->userId);
+            $this->_view->cuser = $user;
+            $this->_view->gitUrl = sprintf(
+                'http://%s/%s/%s.git',
+                $_SERVER['HTTP_HOST'],
+                $this->repo['group'],
+                $this->repo['name']);
+        }
         $this->_view->repoNav = 'code';
         $this->_view->showSummary = true;
         $this->_view->branchNav = 'tree';
+        $this->_layout->title .= '>首页';
     }
 
     /**
@@ -106,6 +121,8 @@ class RepoController extends BaseController
         $this->_view->dir = $this->file;
         $this->_view->repoNav = 'code';
         $this->_view->branchNav = 'tree';
+
+        $this->_layout->title .= '>分支:'.$this->branch.'>目录:'.$this->file;
     }
 
     private $fileCsses = [
@@ -182,6 +199,8 @@ class RepoController extends BaseController
         $this->_view->content = $content;
         $this->_view->language = $language;
         $this->_view->repoNav = 'code';
+
+        $this->_layout->title .= '>分支:'.$this->branch. '>文件:'.$this->file;
     }
 
 
@@ -197,6 +216,8 @@ class RepoController extends BaseController
         $branches = Repository::lsBranches($this->repoPath);
         $this->_view->branches = $branches;
         $this->_view->branchNav = 'commits';
+
+        $this->_layout->title .= '>分支:'.$this->branch. ':提交列表';
     }
 
     /**
@@ -204,8 +225,6 @@ class RepoController extends BaseController
      */
     public function commitAction()
     {
-        $hash = $this->_request->getParam('hash');
-
         $commit = Repository::getCommit($this->repoPath, $this->branch, 1);
         $this->_view->commit = $commit;
 
@@ -213,6 +232,8 @@ class RepoController extends BaseController
         $branches = Repository::lsBranchesByCommit($this->repoPath, $this->branch);
         $this->_view->branches = $branches;
         $this->_view->repoNav = 'commits';
+
+        $this->_layout->title .= '>提交:'.$this->branch;
     }
 
     public function diffAction()
@@ -225,12 +246,15 @@ class RepoController extends BaseController
     {
         $branches = Repository::lsBranches($this->repoPath);
         $this->_view->branches = $branches;
+
+        $this->_layout->title .= '>分支列表';
     }
 
     public function tagsAction()
     {
         $tags = Repository::lsTags($this->repoPath);
         $this->_view->tags = $tags;
+        $this->_layout->title .= '>标签列表';
     }
 
     public function memberAction()
@@ -249,6 +273,7 @@ class RepoController extends BaseController
         }
         $this->_view->repoRoles = $this->repoRoles;
         $this->_view->allUsers = $allUsers;
+        $this->_layout->title .= '>成员列表';
     }
 
     public function _addMemberAction()

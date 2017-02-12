@@ -1,0 +1,24 @@
+<?php if ($pageSize > 1): ?>
+    <ul class="pagination right-align">
+        <?php if ($first): ?>
+            <li><a href="<?= $first ?>" title="首页"><i class="fa fa-angle-left"></i> </a></li>
+        <?php else: ?>
+            <li class="disabled"><a title="首页"><i class="fa fa-angle-left"></i> </a></li>
+        <?php endif ?>
+        <?php foreach ($links as $link): ?>
+            <?php if ($link['url']): ?>
+                <li<?= ($link['active'] ? ' class="active"' : ' class="wave-effect"') ?>>
+                    <a href="<?= $link['url'] ?>" title="第<?= $link['text'] ?>页"><?= $link['text'] ?></a>
+                </li>
+            <?php else: ?>
+                <li><a><?= $link['text'] ?></a></li>
+            <?php endif ?>
+        <?php endforeach ?>
+        <?php if ($last): ?>
+            <li><a href="<?= $last ?>" title="尾页"><i class="fa fa-angle-right"></i> </a></li>
+        <?php else: ?>
+            <li class="disabled"><a title="尾页"><i class="fa fa-angle-right"></i> </a></li>
+        <?php endif ?>
+    </ul>
+<?php endif ?>
+

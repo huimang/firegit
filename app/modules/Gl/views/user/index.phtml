@@ -1,10 +1,6 @@
-<ul class="tabs">
-    <li class="tab"><a href="/gl/user/" target="_self"<?=$glNav == 'user' ? ' class="active"' : ''?>>用户</a> </li>
-    <li class="tab"><a href="/gl/repo/" target="_self"<?=$glNav == 'user' ? ' class="active"' : ''?>>仓库</a> </li>
-</ul>
 <div>
     <a href="/gl/user/add" class="btn-floating right" title="添加用户"><i class="fa fa-plus"></i> 添加</a>
-    <h1>用户列表</h1>
+    <h2>用户管理</h2>
 </div>
 <table class="striped bordered card-panel">
     <tr>
@@ -39,3 +35,4 @@
         </tr>
     <?php endforeach ?>
 </table>
+<?=$pagination?>

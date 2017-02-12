@@ -1,0 +1,63 @@
+<?php include 'component-nav.phtml' ?>
+    <div>
+        <a href="/my/repo/add/" class="btn-floating right"><i class="fa fa-plus"></i> 添加仓库</a>
+        <h2>我创建的GIT库</h2>
+    </div>
+<?php if ($repos): ?>
+    <table class="striped bordered card-panel">
+        <thead>
+        <tr>
+            <th width="6%">ID</th>
+            <th width="60%">库名</th>
+            <th width="20%">加入日期</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($repos as $repo): ?>
+            <tr>
+                <td><?= $repo['repo_id'] ?></td>
+                <td>
+                    <a href="/<?= $repo['group'] ?>/<?= $repo['name'] ?>/">
+                        <?= $repo['group'] ?>/<?= $repo['name'] ?>
+                    </a>
+                </td>
+                <td><?= date('Y/m/d H:i', $repo['create_time']) ?></td>
+                <td>
+                    <a href="/my/repo/update/?repo_id=<?= $repo['repo_id'] ?>"><i class="fa fa-edit"></i> 编辑</a>
+                    &nbsp;&nbsp;
+                    <a href="#modalDel" data-repo_id="<?=$repo['repo_id']?>"  data-repo_name="<?=$repo['name']?>"><i class="fa fa-trash"></i> 删除</a>
+                </td>
+            </tr>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+    <?= $pagination ?>
+
+    <form id="modalDel" class="modal" data-hook="ajax" action="/my/repo/_delete/" method="post">
+        <input type="hidden" name="repo_id" value=""/>
+        <div class="modal-content">
+            <h4>删除GIT库</h4>
+            <p class="red-text">GIT库删除后将不能恢复，请确定您要删除该库！</p>
+            <div class="input-field">
+                <input type="text" name="name"/>
+                <label>输入要删除的库名"<span class="repo_name"></span>"</label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="red white-text modal-action modal-close waves-effect waves-green btn-flat">删除</button>
+        </div>
+    </form>
+    <script>
+        $('#modalDel').modal({
+            ready: function (form, trigger) {
+                form[0].repo_id.value = trigger.data('repo_id');
+                form.find('.repo_name').html(trigger.data('repo_name'));
+            }
+        });
+    </script>
+<?php else: ?>
+    <div class="card-panel">
+        还没有过项目
+    </div>
+<?php endif ?>
