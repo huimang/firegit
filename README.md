@@ -2,8 +2,42 @@
 
 Firegit是一个基于php7的开源GIT管理系统。
 
+## php
+php ~ 7.0.0
+```shell
+$:php -v
+PHP 7.0.14 (cli) (built: Dec 24 2016 21:42:15) ( NTS )
+Copyright (c) 1997-2016 The PHP Group
+Zend Engine v3.0.0, Copyright (c) 1998-2016 Zend Technologies
+```
+php 的配置项
+```
+./configure  --prefix=/opt/php --enable-mysqlnd --enable-fpm --enable-mbstring --enable-zip --with-zlib --with-curl --with-libdir=lib64 --with-pdo-mysql
+```
+
+## luajit
+luajit ~ 2.0.0
+```shell
+wget http://luajit.org/download/LuaJIT-2.0.4.tar.gz
+tar xvfz LuaJIT-2.0.4.tar.gz 
+cd LuaJIT-2.0.4
+make install PREFIX=/opt/luajit
+```
+
 ## nginx
-nginx 配置如下：
+nginx ~ 1.10.0
+
+```shell
+$:nginx -v
+nginx version: nginx/1.10.2
+```
+
+nginx配置如下：
+```shell
+--prefix=/opt/nginx/ --with-ld-opt=-Wl,-rpath,/opt/luajit/lib --add-module=../ngx_devel_kit-0.3.0/ --add-module=../lua-nginx-module-0.10.7
+```
+
+nginx 配置文件如下：
 ```nginx
 #firegit
 server {
